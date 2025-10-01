@@ -1,23 +1,22 @@
-"use client"
+"use client";
 
-import type React from "react"
-import SettingsModal from "@/components/settings-modal" // Import SettingsModal component
-import ImageManagementSection from "./image-management-section"
-import TestimonialsManagement from "./testimonials-management"
-import { TestimonialsProvider } from "../contexts/testimonials-context"
+import type React from "react";
+import SettingsModal from "@/components/settings-modal"; // Import SettingsModal component
+import ImageManagementSection from "./image-management-section";
+import TestimonialsManagement from "./testimonials-management";
+import { TestimonialsProvider } from "../contexts/testimonials-context";
 
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { useAuth } from "../contexts/auth-context"
-import { useProjects } from "../contexts/projects-context"
-import { Trash2, Plus, X, Edit, Save, Upload, Settings } from "lucide-react"
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { useProjects } from "../contexts/projects-context";
+import { Trash2, Plus, X, Edit, Save, Upload, Settings } from "lucide-react";
 
 export default function AdminDashboard() {
-  const { logout } = useAuth()
-  const { projects, addProject, updateProject, deleteProject } = useProjects()
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [editingProject, setEditingProject] = useState<number | null>(null)
+  const { logout } = useAuth();
+  const { projects, addProject, updateProject, deleteProject } = useProjects();
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingProject, setEditingProject] = useState<number | null>(null);
   const [newProject, setNewProject] = useState({
     title: "",
     category: "Residential",
@@ -28,7 +27,7 @@ export default function AdminDashboard() {
     location: "",
     image: "",
     images: [] as string[],
-  })
+  });
 
   const [editProject, setEditProject] = useState({
     title: "",
@@ -40,23 +39,29 @@ export default function AdminDashboard() {
     location: "",
     image: "",
     images: [] as string[],
-  })
+  });
 
-  const [showSettings, setShowSettings] = useState(false)
-  const [activeTab, setActiveTab] = useState("projects") // Add this line
-  const [imageManagement, setImageManagement] = useState({
+  const [showSettings, setShowSettings] = useState(false);
+  const [activeTab, setActiveTab] = useState("projects"); // Add this line
+  const [imageManagement, setImageManagement] = useState<{
+    hero: string[];
+    about: string;
+    services: Record<string, string>;
+    testimonials: Record<string, string>;
+    general: string[];
+  }>({
     hero: [],
     about: "",
     services: {},
     testimonials: {},
     general: [],
-  })
+  });
 
   // Load image management data from localStorage on component mount
   useEffect(() => {
-    const savedImages = localStorage.getItem("darpan_images")
+    const savedImages = localStorage.getItem("darpan_images");
     if (savedImages) {
-      setImageManagement(JSON.parse(savedImages))
+      setImageManagement(JSON.parse(savedImages));
     } else {
       // Set default images
       const defaultImages = {
@@ -67,36 +72,40 @@ export default function AdminDashboard() {
           "/placeholder.svg?height=600&width=800&text=Sophisticated+Dining+Room+with+Crystal+Chandelier",
           "/placeholder.svg?height=600&width=800&text=Luxury+Bathroom+with+Freestanding+Tub+and+Natural+Stone",
         ],
-        about: "/placeholder.svg?height=500&width=600&text=Interior+Designer+at+Work+with+Fabric+Samples",
+        about:
+          "/placeholder.svg?height=500&width=600&text=Interior+Designer+at+Work+with+Fabric+Samples",
         services: {},
         testimonials: {},
         general: [],
-      }
-      setImageManagement(defaultImages)
-      localStorage.setItem("darpan_images", JSON.stringify(defaultImages))
+      };
+      setImageManagement(defaultImages);
+      localStorage.setItem("darpan_images", JSON.stringify(defaultImages));
     }
-  }, [])
+  }, []);
 
   // Save to localStorage whenever imageManagement changes
   useEffect(() => {
     if (Object.keys(imageManagement).length > 0) {
-      localStorage.setItem("darpan_images", JSON.stringify(imageManagement))
+      localStorage.setItem("darpan_images", JSON.stringify(imageManagement));
     }
-  }, [imageManagement])
+  }, [imageManagement]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
-    const files = e.target.files
+  const handleImageUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    isEdit = false
+  ) => {
+    const files = e.target.files;
     if (files) {
-      const fileArray = Array.from(files)
+      const fileArray = Array.from(files);
       const imagePromises = fileArray.map((file) => {
         return new Promise((resolve) => {
-          const reader = new FileReader()
+          const reader = new FileReader();
           reader.onload = (e) => {
-            resolve(e.target?.result as string)
-          }
-          reader.readAsDataURL(file)
-        })
-      })
+            resolve(e.target?.result as string);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
 
       Promise.all(imagePromises).then((images) => {
         if (isEdit) {
@@ -104,22 +113,22 @@ export default function AdminDashboard() {
             ...prev,
             image: prev.image || (images[0] as string), // Set first image as main if no main image exists
             images: [...prev.images, ...(images as string[])], // Add new images to existing ones
-          }))
+          }));
         } else {
           setNewProject((prev) => ({
             ...prev,
             image: prev.image || (images[0] as string), // Set first image as main if no main image exists
             images: [...prev.images, ...(images as string[])], // Add new images to existing ones instead of replacing
-          }))
+          }));
         }
-      })
+      });
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (newProject.title && newProject.image) {
-      addProject(newProject)
+      addProject(newProject);
       setNewProject({
         title: "",
         category: "Residential",
@@ -130,16 +139,16 @@ export default function AdminDashboard() {
         location: "",
         image: "",
         images: [],
-      })
-      setShowAddForm(false)
+      });
+      setShowAddForm(false);
     }
-  }
+  };
 
   const handleEditSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (editingProject && editProject.title && editProject.image) {
-      updateProject(editingProject, editProject)
-      setEditingProject(null)
+      updateProject(editingProject, editProject);
+      setEditingProject(null);
       setEditProject({
         title: "",
         category: "Residential",
@@ -150,12 +159,12 @@ export default function AdminDashboard() {
         location: "",
         image: "",
         images: [],
-      })
+      });
     }
-  }
+  };
 
   const startEditing = (project: any) => {
-    setEditingProject(project.id)
+    setEditingProject(project.id);
     setEditProject({
       title: project.title || "",
       category: project.category || "Residential",
@@ -166,11 +175,11 @@ export default function AdminDashboard() {
       location: project.location || "",
       image: project.image || "",
       images: project.images || [],
-    })
-  }
+    });
+  };
 
   const cancelEditing = () => {
-    setEditingProject(null)
+    setEditingProject(null);
     setEditProject({
       title: "",
       category: "Residential",
@@ -181,38 +190,40 @@ export default function AdminDashboard() {
       location: "",
       image: "",
       images: [],
-    })
-  }
+    });
+  };
 
   const removeImage = (index: number, isEdit = false) => {
     if (isEdit) {
       setEditProject((prev) => ({
         ...prev,
         images: prev.images.filter((_, i) => i !== index),
-        image: index === 0 && prev.images.length > 1 ? prev.images[1] : prev.image, // Update main image if first image is removed
-      }))
+        image:
+          index === 0 && prev.images.length > 1 ? prev.images[1] : prev.image, // Update main image if first image is removed
+      }));
     } else {
       setNewProject((prev) => ({
         ...prev,
         images: prev.images.filter((_, i) => i !== index),
-        image: index === 0 && prev.images.length > 1 ? prev.images[1] : prev.image,
-      }))
+        image:
+          index === 0 && prev.images.length > 1 ? prev.images[1] : prev.image,
+      }));
     }
-  }
+  };
 
   const setAsMainImage = (index: number, isEdit = false) => {
     if (isEdit) {
       setEditProject((prev) => ({
         ...prev,
         image: prev.images[index],
-      }))
+      }));
     } else {
       setNewProject((prev) => ({
         ...prev,
         image: prev.images[index],
-      }))
+      }));
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-25 to-white">
@@ -220,7 +231,9 @@ export default function AdminDashboard() {
       <div className="bg-gradient-to-r from-white via-orange-50 to-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-light text-gray-900">Admin Dashboard</h1>
+            <h1 className="text-xl font-light text-gray-900">
+              Admin Dashboard
+            </h1>
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
@@ -230,7 +243,11 @@ export default function AdminDashboard() {
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </Button>
-              <Button variant="ghost" onClick={logout} className="text-gray-600">
+              <Button
+                variant="ghost"
+                onClick={logout}
+                className="text-gray-600"
+              >
                 Logout
               </Button>
             </div>
@@ -276,8 +293,13 @@ export default function AdminDashboard() {
         {/* Add Project Button - Only show in Projects tab */}
         {activeTab === "projects" && (
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-light text-gray-900">Manage Projects</h2>
-            <Button onClick={() => setShowAddForm(true)} className="bg-amber-600 hover:bg-amber-700">
+            <h2 className="text-2xl font-light text-gray-900">
+              Manage Projects
+            </h2>
+            <Button
+              onClick={() => setShowAddForm(true)}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Project
             </Button>
@@ -322,11 +344,27 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div className="p-4">
-                    <h3 className="font-medium text-gray-900 mb-1">{project.title}</h3>
-                    <p className="text-sm text-gray-500 mb-2">{project.category}</p>
-                    {project.description && <p className="text-sm text-gray-600">{project.description}</p>}
-                    {project.client && <p className="text-xs text-gray-500 mt-2">Client: {project.client}</p>}
-                    {project.year && <p className="text-xs text-gray-500">Year: {project.year}</p>}
+                    <h3 className="font-medium text-gray-900 mb-1">
+                      {project.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-2">
+                      {project.category}
+                    </p>
+                    {project.description && (
+                      <p className="text-sm text-gray-600">
+                        {project.description}
+                      </p>
+                    )}
+                    {project.client && (
+                      <p className="text-xs text-gray-500 mt-2">
+                        Client: {project.client}
+                      </p>
+                    )}
+                    {project.year && (
+                      <p className="text-xs text-gray-500">
+                        Year: {project.year}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -337,8 +375,14 @@ export default function AdminDashboard() {
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div className="bg-gradient-to-br from-white via-orange-25 to-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-light text-gray-900">Add New Project</h3>
-                    <Button variant="ghost" size="icon" onClick={() => setShowAddForm(false)}>
+                    <h3 className="text-xl font-light text-gray-900">
+                      Add New Project
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowAddForm(false)}
+                    >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
@@ -346,11 +390,18 @@ export default function AdminDashboard() {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Project Title</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Project Title
+                        </label>
                         <input
                           type="text"
                           value={newProject.title}
-                          onChange={(e) => setNewProject((prev) => ({ ...prev, title: e.target.value }))}
+                          onChange={(e) =>
+                            setNewProject((prev) => ({
+                              ...prev,
+                              title: e.target.value,
+                            }))
+                          }
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                           placeholder="Enter project title"
                           required
@@ -358,10 +409,17 @@ export default function AdminDashboard() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Category
+                        </label>
                         <select
                           value={newProject.category}
-                          onChange={(e) => setNewProject((prev) => ({ ...prev, category: e.target.value }))}
+                          onChange={(e) =>
+                            setNewProject((prev) => ({
+                              ...prev,
+                              category: e.target.value,
+                            }))
+                          }
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                         >
                           <option value="Residential">Residential</option>
@@ -372,33 +430,54 @@ export default function AdminDashboard() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Client</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Client
+                        </label>
                         <input
                           type="text"
                           value={newProject.client}
-                          onChange={(e) => setNewProject((prev) => ({ ...prev, client: e.target.value }))}
+                          onChange={(e) =>
+                            setNewProject((prev) => ({
+                              ...prev,
+                              client: e.target.value,
+                            }))
+                          }
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                           placeholder="Client name"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Year
+                        </label>
                         <input
                           type="text"
                           value={newProject.year}
-                          onChange={(e) => setNewProject((prev) => ({ ...prev, year: e.target.value }))}
+                          onChange={(e) =>
+                            setNewProject((prev) => ({
+                              ...prev,
+                              year: e.target.value,
+                            }))
+                          }
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                           placeholder="2024"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Location
+                        </label>
                         <input
                           type="text"
                           value={newProject.location}
-                          onChange={(e) => setNewProject((prev) => ({ ...prev, location: e.target.value }))}
+                          onChange={(e) =>
+                            setNewProject((prev) => ({
+                              ...prev,
+                              location: e.target.value,
+                            }))
+                          }
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                           placeholder="Project location"
                         />
@@ -406,10 +485,17 @@ export default function AdminDashboard() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Description
+                      </label>
                       <textarea
                         value={newProject.description}
-                        onChange={(e) => setNewProject((prev) => ({ ...prev, description: e.target.value }))}
+                        onChange={(e) =>
+                          setNewProject((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                         placeholder="Brief project description"
                         rows={2}
@@ -417,10 +503,17 @@ export default function AdminDashboard() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Detailed Description</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Detailed Description
+                      </label>
                       <textarea
                         value={newProject.details}
-                        onChange={(e) => setNewProject((prev) => ({ ...prev, details: e.target.value }))}
+                        onChange={(e) =>
+                          setNewProject((prev) => ({
+                            ...prev,
+                            details: e.target.value,
+                          }))
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                         placeholder="Detailed project description"
                         rows={3}
@@ -439,13 +532,20 @@ export default function AdminDashboard() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => setNewProject((prev) => ({ ...prev, images: [], image: "" }))}
+                          onClick={() =>
+                            setNewProject((prev) => ({
+                              ...prev,
+                              images: [],
+                              image: "",
+                            }))
+                          }
                           className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
                         >
                           Clear All Images
                         </Button>
                         <span className="text-xs text-gray-500 flex items-center">
-                          {newProject.images.length} image{newProject.images.length !== 1 ? "s" : ""} selected
+                          {newProject.images.length} image
+                          {newProject.images.length !== 1 ? "s" : ""} selected
                         </span>
                       </div>
                       <input
@@ -459,12 +559,18 @@ export default function AdminDashboard() {
                       {newProject.images.length > 0 && (
                         <div className="mt-4">
                           <div className="flex justify-between items-center mb-2">
-                            <p className="text-sm text-gray-600">Selected Images ({newProject.images.length})</p>
+                            <p className="text-sm text-gray-600">
+                              Selected Images ({newProject.images.length})
+                            </p>
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={() => document.getElementById("new-project-images")?.click()}
+                              onClick={() =>
+                                document
+                                  .getElementById("new-project-images")
+                                  ?.click()
+                              }
                               className="text-green-600 hover:text-green-700 border-green-200 hover:border-green-300"
                             >
                               <Upload className="h-3 w-3 mr-1" />
@@ -487,7 +593,9 @@ export default function AdminDashboard() {
                                       <Button
                                         type="button"
                                         size="sm"
-                                        onClick={() => setAsMainImage(index, false)}
+                                        onClick={() =>
+                                          setAsMainImage(index, false)
+                                        }
                                         className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1 h-6"
                                       >
                                         Set Main
@@ -519,7 +627,10 @@ export default function AdminDashboard() {
                       )}
                     </div>
 
-                    <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-700">
+                    <Button
+                      type="submit"
+                      className="w-full bg-amber-600 hover:bg-amber-700"
+                    >
                       Add Project
                     </Button>
                   </form>
@@ -532,7 +643,9 @@ export default function AdminDashboard() {
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div className="bg-gradient-to-br from-white via-orange-25 to-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-light text-gray-900">Edit Project</h3>
+                    <h3 className="text-xl font-light text-gray-900">
+                      Edit Project
+                    </h3>
                     <Button variant="ghost" size="icon" onClick={cancelEditing}>
                       <X className="h-4 w-4" />
                     </Button>
@@ -541,11 +654,18 @@ export default function AdminDashboard() {
                   <form onSubmit={handleEditSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Project Title</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Project Title
+                        </label>
                         <input
                           type="text"
                           value={editProject.title}
-                          onChange={(e) => setEditProject((prev) => ({ ...prev, title: e.target.value }))}
+                          onChange={(e) =>
+                            setEditProject((prev) => ({
+                              ...prev,
+                              title: e.target.value,
+                            }))
+                          }
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                           placeholder="Enter project title"
                           required
@@ -553,10 +673,17 @@ export default function AdminDashboard() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Category
+                        </label>
                         <select
                           value={editProject.category}
-                          onChange={(e) => setEditProject((prev) => ({ ...prev, category: e.target.value }))}
+                          onChange={(e) =>
+                            setEditProject((prev) => ({
+                              ...prev,
+                              category: e.target.value,
+                            }))
+                          }
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                         >
                           <option value="Residential">Residential</option>
@@ -567,33 +694,54 @@ export default function AdminDashboard() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Client</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Client
+                        </label>
                         <input
                           type="text"
                           value={editProject.client}
-                          onChange={(e) => setEditProject((prev) => ({ ...prev, client: e.target.value }))}
+                          onChange={(e) =>
+                            setEditProject((prev) => ({
+                              ...prev,
+                              client: e.target.value,
+                            }))
+                          }
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                           placeholder="Client name"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Year
+                        </label>
                         <input
                           type="text"
                           value={editProject.year}
-                          onChange={(e) => setEditProject((prev) => ({ ...prev, year: e.target.value }))}
+                          onChange={(e) =>
+                            setEditProject((prev) => ({
+                              ...prev,
+                              year: e.target.value,
+                            }))
+                          }
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                           placeholder="2024"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Location
+                        </label>
                         <input
                           type="text"
                           value={editProject.location}
-                          onChange={(e) => setEditProject((prev) => ({ ...prev, location: e.target.value }))}
+                          onChange={(e) =>
+                            setEditProject((prev) => ({
+                              ...prev,
+                              location: e.target.value,
+                            }))
+                          }
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                           placeholder="Project location"
                         />
@@ -601,10 +749,17 @@ export default function AdminDashboard() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Description
+                      </label>
                       <textarea
                         value={editProject.description}
-                        onChange={(e) => setEditProject((prev) => ({ ...prev, description: e.target.value }))}
+                        onChange={(e) =>
+                          setEditProject((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                         placeholder="Brief project description"
                         rows={2}
@@ -612,10 +767,17 @@ export default function AdminDashboard() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Detailed Description</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Detailed Description
+                      </label>
                       <textarea
                         value={editProject.details}
-                        onChange={(e) => setEditProject((prev) => ({ ...prev, details: e.target.value }))}
+                        onChange={(e) =>
+                          setEditProject((prev) => ({
+                            ...prev,
+                            details: e.target.value,
+                          }))
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                         placeholder="Detailed project description"
                         rows={3}
@@ -624,7 +786,9 @@ export default function AdminDashboard() {
 
                     <div>
                       <div className="flex justify-between items-center mb-2">
-                        <label className="block text-sm font-medium text-gray-700">Project Images</label>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Project Images
+                        </label>
                         <div>
                           <input
                             type="file"
@@ -634,8 +798,15 @@ export default function AdminDashboard() {
                             className="hidden"
                             id="edit-image-upload"
                           />
-                          <label htmlFor="edit-image-upload" className="cursor-pointer">
-                            <Button type="button" size="sm" className="bg-green-600 hover:bg-green-700">
+                          <label
+                            htmlFor="edit-image-upload"
+                            className="cursor-pointer"
+                          >
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700"
+                            >
                               <Upload className="h-4 w-4 mr-2" />
                               Add More Images
                             </Button>
@@ -644,7 +815,9 @@ export default function AdminDashboard() {
                       </div>
                       {editProject.images.length > 0 && (
                         <div className="mt-4">
-                          <p className="text-sm text-gray-600 mb-2">Current Images ({editProject.images.length})</p>
+                          <p className="text-sm text-gray-600 mb-2">
+                            Current Images ({editProject.images.length})
+                          </p>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                             {editProject.images.map((image, index) => (
                               <div key={index} className="relative group">
@@ -661,7 +834,9 @@ export default function AdminDashboard() {
                                       <Button
                                         type="button"
                                         size="sm"
-                                        onClick={() => setAsMainImage(index, true)}
+                                        onClick={() =>
+                                          setAsMainImage(index, true)
+                                        }
                                         className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1"
                                       >
                                         Main
@@ -690,10 +865,18 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="flex gap-4">
-                      <Button type="button" variant="outline" onClick={cancelEditing} className="flex-1 bg-transparent">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={cancelEditing}
+                        className="flex-1 bg-transparent"
+                      >
                         Cancel
                       </Button>
-                      <Button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-700">
+                      <Button
+                        type="submit"
+                        className="flex-1 bg-amber-600 hover:bg-amber-700"
+                      >
                         <Save className="h-4 w-4 mr-2" />
                         Save Changes
                       </Button>
@@ -714,14 +897,21 @@ export default function AdminDashboard() {
 
         {/* Image Management Tab */}
         {activeTab === "images" && (
-          <ImageManagementSection imageManagement={imageManagement} setImageManagement={setImageManagement} />
+          <ImageManagementSection
+            imageManagement={imageManagement}
+            setImageManagement={setImageManagement}
+          />
         )}
 
         {/* Settings Modal */}
         {showSettings && (
-          <SettingsModal onClose={() => setShowSettings(false)} onAdminLogin={() => {}} isAdmin={true} />
+          <SettingsModal
+            onClose={() => setShowSettings(false)}
+            onAdminLogin={() => {}}
+            isAdmin={true}
+          />
         )}
       </div>
     </div>
-  )
+  );
 }

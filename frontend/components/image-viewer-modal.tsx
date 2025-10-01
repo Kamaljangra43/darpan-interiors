@@ -1,147 +1,161 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useRef, useEffect } from "react"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw, Download, Maximize2 } from "lucide-react"
+import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  Download,
+  Maximize2,
+} from "lucide-react";
 
-interface ImageViewerModalProps {
-  images: string[]
-  initialIndex: number
-  projectTitle: string
-  onClose: () => void
+export interface ImageViewerModalProps {
+  images: string[];
+  initialIndex: number;
+  projectTitle: string;
+  onClose: () => void;
 }
 
-export default function ImageViewerModal({ images, initialIndex, projectTitle, onClose }: ImageViewerModalProps) {
-  const [currentIndex, setCurrentIndex] = useState(initialIndex)
-  const [scale, setScale] = useState(1)
-  const [rotation, setRotation] = useState(0)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const imageRef = useRef<HTMLDivElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+export default function ImageViewerModal({
+  images,
+  initialIndex,
+  projectTitle,
+  onClose,
+}: ImageViewerModalProps) {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [scale, setScale] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const imageRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Reset transformations when image changes
   useEffect(() => {
-    setScale(1)
-    setRotation(0)
-    setPosition({ x: 0, y: 0 })
-  }, [currentIndex])
+    setScale(1);
+    setRotation(0);
+    setPosition({ x: 0, y: 0 });
+  }, [currentIndex]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       switch (e.key) {
         case "Escape":
-          onClose()
-          break
+          onClose();
+          break;
         case "ArrowLeft":
-          previousImage()
-          break
+          previousImage();
+          break;
         case "ArrowRight":
-          nextImage()
-          break
+          nextImage();
+          break;
         case "+":
         case "=":
-          zoomIn()
-          break
+          zoomIn();
+          break;
         case "-":
-          zoomOut()
-          break
+          zoomOut();
+          break;
         case "r":
         case "R":
-          rotate()
-          break
+          rotate();
+          break;
         case "0":
-          resetTransform()
-          break
+          resetTransform();
+          break;
       }
-    }
+    };
 
-    window.addEventListener("keydown", handleKeyPress)
-    return () => window.removeEventListener("keydown", handleKeyPress)
-  }, [currentIndex])
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [currentIndex]);
 
   const nextImage = () => {
-    setCurrentIndex((prev) => (prev + 1) % images.length)
-  }
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
 
   const previousImage = () => {
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
-  }
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
 
   const zoomIn = () => {
-    setScale((prev) => Math.min(prev * 1.2, 3))
-  }
+    setScale((prev) => Math.min(prev * 1.2, 3));
+  };
 
   const zoomOut = () => {
-    setScale((prev) => Math.max(prev / 1.2, 0.5))
-  }
+    setScale((prev) => Math.max(prev / 1.2, 0.5));
+  };
 
   const rotate = () => {
-    setRotation((prev) => (prev + 90) % 360)
-  }
+    setRotation((prev) => (prev + 90) % 360);
+  };
 
   const resetTransform = () => {
-    setScale(1)
-    setRotation(0)
-    setPosition({ x: 0, y: 0 })
-  }
+    setScale(1);
+    setRotation(0);
+    setPosition({ x: 0, y: 0 });
+  };
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen()
-      setIsFullscreen(true)
+      containerRef.current?.requestFullscreen();
+      setIsFullscreen(true);
     } else {
-      document.exitFullscreen()
-      setIsFullscreen(false)
+      document.exitFullscreen();
+      setIsFullscreen(false);
     }
-  }
+  };
 
   const downloadImage = () => {
-    const link = document.createElement("a")
-    link.href = images[currentIndex]
-    link.download = `${projectTitle}-image-${currentIndex + 1}.jpg`
-    link.click()
-  }
+    const link = document.createElement("a");
+    link.href = images[currentIndex];
+    link.download = `${projectTitle}-image-${currentIndex + 1}.jpg`;
+    link.click();
+  };
 
   // Mouse drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     if (scale > 1) {
-      setIsDragging(true)
+      setIsDragging(true);
       setDragStart({
         x: e.clientX - position.x,
         y: e.clientY - position.y,
-      })
+      });
     }
-  }
+  };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isDragging && scale > 1) {
       setPosition({
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y,
-      })
+      });
     }
-  }
+  };
 
   const handleMouseUp = () => {
-    setIsDragging(false)
-  }
+    setIsDragging(false);
+  };
 
   // Wheel zoom
   const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (e.deltaY < 0) {
-      zoomIn()
+      zoomIn();
     } else {
-      zoomOut()
+      zoomOut();
     }
-  }
+  };
 
   return (
     <div
@@ -255,7 +269,9 @@ export default function ImageViewerModal({ images, initialIndex, projectTitle, o
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        style={{ cursor: scale > 1 ? (isDragging ? "grabbing" : "grab") : "default" }}
+        style={{
+          cursor: scale > 1 ? (isDragging ? "grabbing" : "grab") : "default",
+        }}
       >
         <div
           className="transition-transform duration-200 ease-out"
@@ -280,7 +296,9 @@ export default function ImageViewerModal({ images, initialIndex, projectTitle, o
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
         <div className="flex items-center space-x-4 bg-black/50 px-4 py-2 rounded-lg">
           {/* Zoom Level */}
-          <span className="text-white text-sm font-medium">{Math.round(scale * 100)}%</span>
+          <span className="text-white text-sm font-medium">
+            {Math.round(scale * 100)}%
+          </span>
 
           {/* Reset Button */}
           <Button
@@ -301,7 +319,9 @@ export default function ImageViewerModal({ images, initialIndex, projectTitle, o
                   key={index}
                   onClick={() => setCurrentIndex(index)}
                   className={`relative w-12 h-8 rounded overflow-hidden transition-all flex-shrink-0 ${
-                    index === currentIndex ? "ring-2 ring-white" : "opacity-60 hover:opacity-80"
+                    index === currentIndex
+                      ? "ring-2 ring-white"
+                      : "opacity-60 hover:opacity-80"
                   }`}
                 >
                   <Image
@@ -325,5 +345,5 @@ export default function ImageViewerModal({ images, initialIndex, projectTitle, o
         <div>Press R to rotate, 0 to reset</div>
       </div>
     </div>
-  )
+  );
 }

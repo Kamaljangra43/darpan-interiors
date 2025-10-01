@@ -1,13 +1,13 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+"use client";
+import type { Project } from "@/types/project";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Home,
   User,
@@ -46,121 +46,178 @@ import {
   Pause,
   SkipBack,
   SkipForward,
-} from "lucide-react"
-import { useTheme, ThemeProvider } from "./contexts/theme-context"
-import { AuthProvider, useAuth } from "./contexts/auth-context"
-import { ProjectsProvider, useProjects } from "./contexts/projects-context"
-import { TestimonialsProvider, useTestimonials } from "./contexts/testimonials-context"
-import AdminLogin from "./components/admin-login"
-import AdminDashboard from "./components/admin-dashboard"
-import AdminAccess from "./components/admin-access"
-import SettingsModal from "./components/settings-modal"
-import ConsultationModal from "./components/consultation-modal"
-import ProjectDetailModal from "./components/project-detail-modal"
-import ImageViewerModal from "./components/image-viewer-modal"
-import type { Project } from "./types/project"
+} from "lucide-react";
+import { useTheme, ThemeProvider } from "./contexts/theme-context";
+import { AuthProvider, useAuth } from "./contexts/auth-context";
+import { ProjectsProvider, useProjects } from "./contexts/projects-context";
+import {
+  TestimonialsProvider,
+  useTestimonials,
+} from "./contexts/testimonials-context";
+import AdminLogin from "./components/admin-login";
+import AdminDashboard from "./components/admin-dashboard";
+import SettingsModal from "./components/settings-modal";
+import ConsultationModal from "./components/consultation-modal";
+import ProjectDetailModal from "./components/project-detail-modal";
+import ImageViewerModal from "./components/image-viewer-modal";
 
 function DarpanInteriorsPortfolioContent() {
-  const { isDarkMode } = useTheme()
-  const { isAuthenticated, logout } = useAuth()
-  const { projects, loading: projectsLoading } = useProjects()
-  const { testimonials, loading: testimonialsLoading } = useTestimonials()
-  const { showAdminLogin, setShowAdminLogin } = AdminAccess()
+  const { isDarkMode } = useTheme();
+  const { isAuthenticated, logout } = useAuth();
+  const { projects, loading: projectsLoading } = useProjects();
+  const { testimonials, loading: testimonialsLoading } = useTestimonials();
+  //const { showAdminLogin, setShowAdminLogin } = AdminAccess()
 
-  const [activeSection, setActiveSection] = useState("home")
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
-  const [showConsultation, setShowConsultation] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
-  const [visibleProjects, setVisibleProjects] = useState(6)
-  const [projectFilter, setProjectFilter] = useState("all")
-  const [projectSearch, setProjectSearch] = useState("")
-  const [projectViewMode, setProjectViewMode] = useState<"grid" | "list">("grid")
-  const [currentTestimonial, setCurrentTestimonial] = useState(0)
-  const [isTestimonialPlaying, setIsTestimonialPlaying] = useState(true)
+  const [activeSection, setActiveSection] = useState("home");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showConsultation, setShowConsultation] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [visibleProjects, setVisibleProjects] = useState(6);
+  const [projectFilter, setProjectFilter] = useState("all");
+  const [projectSearch, setProjectSearch] = useState("");
+  const [projectViewMode, setProjectViewMode] = useState<"grid" | "list">(
+    "grid"
+  );
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [isTestimonialPlaying, setIsTestimonialPlaying] = useState(true);
 
   // Auto-rotate testimonials
   useEffect(() => {
-    if (!isTestimonialPlaying || testimonials.length <= 1) return
+    if (!isTestimonialPlaying || testimonials.length <= 1) return;
 
     const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)
-    }, 5000)
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
 
-    return () => clearInterval(interval)
-  }, [testimonials.length, isTestimonialPlaying])
+    return () => clearInterval(interval);
+  }, [testimonials.length, isTestimonialPlaying]);
 
   // Smooth scroll to section
   const scrollToSection = (sectionId: string) => {
-    setActiveSection(sectionId)
-    setIsMenuOpen(false)
-    const element = document.getElementById(sectionId)
+    setActiveSection(sectionId);
+    setIsMenuOpen(false);
+    const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" })
+      element.scrollIntoView({ behavior: "smooth" });
     }
-  }
+  };
 
   // Filter projects
   const filteredProjects = projects.filter((project) => {
-    const matchesFilter = projectFilter === "all" || project.category === projectFilter
+    const matchesFilter =
+      projectFilter === "all" || project.category === projectFilter;
     const matchesSearch =
       projectSearch === "" ||
       project.title.toLowerCase().includes(projectSearch.toLowerCase()) ||
-      project.description.toLowerCase().includes(projectSearch.toLowerCase())
-    return matchesFilter && matchesSearch
-  })
+      project.description?.toLowerCase().includes(projectSearch.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
-  const displayedProjects = filteredProjects.slice(0, visibleProjects)
+  const displayedProjects = filteredProjects.slice(0, visibleProjects);
 
   // Get unique categories for filter
-  const categories = ["all", ...Array.from(new Set(projects.map((p) => p.category)))]
+  const categories = [
+    "all",
+    ...Array.from(new Set(projects.map((p) => p.category))),
+  ];
 
   const services = [
     {
       icon: Home,
       title: "Residential Design",
       description: "Complete home makeovers with personalized touches",
-      features: ["Space Planning", "Color Consultation", "Furniture Selection", "Lighting Design"],
+      features: [
+        "Space Planning",
+        "Color Consultation",
+        "Furniture Selection",
+        "Lighting Design",
+      ],
     },
     {
       icon: Building,
       title: "Commercial Spaces",
       description: "Professional environments that inspire productivity",
-      features: ["Office Design", "Retail Spaces", "Restaurant Interiors", "Hotel Design"],
+      features: [
+        "Office Design",
+        "Retail Spaces",
+        "Restaurant Interiors",
+        "Hotel Design",
+      ],
     },
     {
       icon: Palette,
       title: "Color Consultation",
       description: "Expert color schemes that transform your space",
-      features: ["Color Psychology", "Paint Selection", "Accent Colors", "Seasonal Updates"],
+      features: [
+        "Color Psychology",
+        "Paint Selection",
+        "Accent Colors",
+        "Seasonal Updates",
+      ],
     },
     {
       icon: Lightbulb,
       title: "Lighting Design",
       description: "Illumination solutions for every mood and function",
-      features: ["Ambient Lighting", "Task Lighting", "Accent Lighting", "Smart Controls"],
+      features: [
+        "Ambient Lighting",
+        "Task Lighting",
+        "Accent Lighting",
+        "Smart Controls",
+      ],
     },
     {
       icon: Ruler,
       title: "Space Planning",
       description: "Optimize your space for maximum functionality",
-      features: ["Layout Design", "Traffic Flow", "Storage Solutions", "Multi-Purpose Areas"],
+      features: [
+        "Layout Design",
+        "Traffic Flow",
+        "Storage Solutions",
+        "Multi-Purpose Areas",
+      ],
     },
     {
       icon: Sofa,
       title: "Furniture Selection",
       description: "Curated pieces that reflect your personal style",
-      features: ["Custom Furniture", "Vintage Finds", "Modern Pieces", "Sustainable Options"],
+      features: [
+        "Custom Furniture",
+        "Vintage Finds",
+        "Modern Pieces",
+        "Sustainable Options",
+      ],
     },
-  ]
+  ];
 
   const stats = [
-    { icon: Users, label: "Happy Clients", value: "150+", description: "Satisfied customers worldwide" },
-    { icon: Award, label: "Years Experience", value: "12+", description: "In interior design industry" },
-    { icon: Briefcase, label: "Projects Completed", value: "200+", description: "Successful transformations" },
-    { icon: TrendingUp, label: "Client Satisfaction", value: "98%", description: "Positive feedback rate" },
-  ]
+    {
+      icon: Users,
+      label: "Happy Clients",
+      value: "150+",
+      description: "Satisfied customers worldwide",
+    },
+    {
+      icon: Award,
+      label: "Years Experience",
+      value: "12+",
+      description: "In interior design industry",
+    },
+    {
+      icon: Briefcase,
+      label: "Projects Completed",
+      value: "200+",
+      description: "Successful transformations",
+    },
+    {
+      icon: TrendingUp,
+      label: "Client Satisfaction",
+      value: "98%",
+      description: "Positive feedback rate",
+    },
+  ];
 
   const navigationItems = [
     { id: "home", label: "Home", icon: Home },
@@ -169,36 +226,48 @@ function DarpanInteriorsPortfolioContent() {
     { id: "portfolio", label: "Portfolio", icon: Eye },
     { id: "testimonials", label: "Testimonials", icon: MessageSquare },
     { id: "contact", label: "Contact", icon: Mail },
-  ]
+  ];
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
+    <div
+      className={`min-h-screen ${
+        isDarkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
+      }`}
+    >
       {/* Admin Panel - Only show if authenticated */}
       {isAuthenticated && <AdminDashboard />}
-
-      {/* Admin Login Modal - No longer triggered by URL parameters */}
-      {showAdminLogin && <AdminLogin onClose={() => setShowAdminLogin(false)} />}
 
       {/* Settings Modal */}
       {showSettings && (
         <SettingsModal
           onClose={() => setShowSettings(false)}
-          onAdminLogin={() => {
-            setShowSettings(false)
-            setShowAdminLogin(true)
-          }}
-          isAdmin={isAuthenticated}
+          isAdmin={false}
+          onAdminLogin={() => {}}
         />
       )}
 
       {/* Consultation Modal */}
-      {showConsultation && <ConsultationModal onClose={() => setShowConsultation(false)} />}
+      {showConsultation && (
+        <ConsultationModal onClose={() => setShowConsultation(false)} />
+      )}
 
       {/* Project Detail Modal */}
-      {selectedProject && <ProjectDetailModal project={selectedProject} onClose={() => setSelectedProject(null)} />}
+      {selectedProject && (
+        <ProjectDetailModal
+          project={selectedProject}
+          onClose={() => setSelectedProject(null)}
+        />
+      )}
 
       {/* Image Viewer Modal */}
-      {selectedImage && <ImageViewerModal imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />}
+      {selectedImage && (
+        <ImageViewerModal
+          images={[selectedImage]}
+          initialIndex={0}
+          onClose={() => setSelectedImage(null)}
+          projectTitle={""}
+        />
+      )}
 
       {/* Navigation Header */}
       <header
@@ -222,15 +291,27 @@ function DarpanInteriorsPortfolioContent() {
                 <Sparkles className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>Darpan Interiors</h1>
-                <p className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Transforming Spaces</p>
+                <h1
+                  className={`text-xl font-bold ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  Darpan Interiors
+                </h1>
+                <p
+                  className={`text-xs ${
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  Transforming Spaces
+                </p>
               </div>
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               {navigationItems.map((item) => {
-                const Icon = item.icon
+                const Icon = item.icon;
                 return (
                   <button
                     key={item.id}
@@ -241,14 +322,14 @@ function DarpanInteriorsPortfolioContent() {
                           ? "bg-amber-500/20 text-amber-400"
                           : "bg-amber-500/20 text-amber-600"
                         : isDarkMode
-                          ? "text-gray-300 hover:text-white hover:bg-gray-800"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                        ? "text-gray-300 hover:text-white hover:bg-gray-800"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                     }`}
                   >
                     <Icon className="h-4 w-4" />
                     <span className="text-sm font-medium">{item.label}</span>
                   </button>
-                )
+                );
               })}
             </nav>
 
@@ -266,16 +347,37 @@ function DarpanInteriorsPortfolioContent() {
                 Book Consultation
               </Button>
 
-              <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
-                <Settings className={`h-5 w-5 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`} />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowSettings(true)}
+              >
+                <Settings
+                  className={`h-5 w-5 ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                />
               </Button>
 
               {/* Mobile Menu Button */}
-              <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
                 {isMenuOpen ? (
-                  <X className={`h-5 w-5 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`} />
+                  <X
+                    className={`h-5 w-5 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  />
                 ) : (
-                  <Menu className={`h-5 w-5 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`} />
+                  <Menu
+                    className={`h-5 w-5 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  />
                 )}
               </Button>
             </div>
@@ -285,12 +387,14 @@ function DarpanInteriorsPortfolioContent() {
           {isMenuOpen && (
             <div
               className={`md:hidden border-t ${
-                isDarkMode ? "border-gray-800 bg-gray-900/95" : "border-gray-200 bg-white/95"
+                isDarkMode
+                  ? "border-gray-800 bg-gray-900/95"
+                  : "border-gray-200 bg-white/95"
               } backdrop-blur-md`}
             >
               <nav className="py-4 space-y-2">
                 {navigationItems.map((item) => {
-                  const Icon = item.icon
+                  const Icon = item.icon;
                   return (
                     <button
                       key={item.id}
@@ -301,20 +405,20 @@ function DarpanInteriorsPortfolioContent() {
                             ? "bg-amber-500/20 text-amber-400"
                             : "bg-amber-500/20 text-amber-600"
                           : isDarkMode
-                            ? "text-gray-300 hover:text-white hover:bg-gray-800"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                          ? "text-gray-300 hover:text-white hover:bg-gray-800"
+                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                       }`}
                     >
                       <Icon className="h-5 w-5" />
                       <span className="font-medium">{item.label}</span>
                     </button>
-                  )
+                  );
                 })}
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                   <Button
                     onClick={() => {
-                      setShowConsultation(true)
-                      setIsMenuOpen(false)
+                      setShowConsultation(true);
+                      setIsMenuOpen(false);
                     }}
                     className={`w-full ${
                       isDarkMode
@@ -365,9 +469,15 @@ function DarpanInteriorsPortfolioContent() {
                   </span>
                   , Creating Dreams
                 </h1>
-                <p className={`text-xl ${isDarkMode ? "text-gray-300" : "text-gray-600"} max-w-2xl`}>
-                  With over 12 years of experience, we specialize in creating beautiful, functional spaces that reflect
-                  your unique personality and lifestyle. From concept to completion, we bring your vision to life.
+                <p
+                  className={`text-xl ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  } max-w-2xl`}
+                >
+                  With over 12 years of experience, we specialize in creating
+                  beautiful, functional spaces that reflect your unique
+                  personality and lifestyle. From concept to completion, we
+                  bring your vision to life.
                 </p>
               </div>
 
@@ -402,7 +512,7 @@ function DarpanInteriorsPortfolioContent() {
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
                 {stats.map((stat, index) => {
-                  const Icon = stat.icon
+                  const Icon = stat.icon;
                   return (
                     <div key={index} className="text-center">
                       <div
@@ -412,14 +522,28 @@ function DarpanInteriorsPortfolioContent() {
                             : "bg-gradient-to-br from-amber-500/20 to-orange-500/20"
                         } rounded-lg flex items-center justify-center mx-auto mb-3`}
                       >
-                        <Icon className={`h-6 w-6 ${isDarkMode ? "text-amber-400" : "text-amber-600"}`} />
+                        <Icon
+                          className={`h-6 w-6 ${
+                            isDarkMode ? "text-amber-400" : "text-amber-600"
+                          }`}
+                        />
                       </div>
-                      <div className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                      <div
+                        className={`text-2xl font-bold ${
+                          isDarkMode ? "text-white" : "text-gray-900"
+                        }`}
+                      >
                         {stat.value}
                       </div>
-                      <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{stat.label}</div>
+                      <div
+                        className={`text-sm ${
+                          isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        {stat.label}
+                      </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -430,7 +554,11 @@ function DarpanInteriorsPortfolioContent() {
                   src="/modern-luxury-living-room-interior-design.jpg"
                   alt="Modern luxury living room interior design"
                   className="rounded-2xl shadow-2xl w-full h-auto"
-                  onClick={() => setSelectedImage("/modern-luxury-living-room-interior-design.jpg")}
+                  onClick={() =>
+                    setSelectedImage(
+                      "/modern-luxury-living-room-interior-design.jpg"
+                    )
+                  }
                 />
               </div>
               <div
@@ -446,7 +574,10 @@ function DarpanInteriorsPortfolioContent() {
       </section>
 
       {/* About Section */}
-      <section id="about" className={`py-20 ${isDarkMode ? "bg-gray-800/50" : "bg-gray-50"}`}>
+      <section
+        id="about"
+        className={`py-20 ${isDarkMode ? "bg-gray-800/50" : "bg-gray-50"}`}
+      >
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
@@ -461,7 +592,11 @@ function DarpanInteriorsPortfolioContent() {
                 >
                   About Darpan Interiors
                 </Badge>
-                <h2 className={`text-3xl md:text-4xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                <h2
+                  className={`text-3xl md:text-4xl font-bold ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  }`}
+                >
                   Passionate About Creating{" "}
                   <span
                     className={`${
@@ -473,9 +608,14 @@ function DarpanInteriorsPortfolioContent() {
                     Beautiful Spaces
                   </span>
                 </h2>
-                <p className={`text-lg ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
-                  Founded with a vision to transform ordinary spaces into extraordinary experiences, Darpan Interiors
-                  has been at the forefront of innovative interior design for over a decade.
+                <p
+                  className={`text-lg ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  Founded with a vision to transform ordinary spaces into
+                  extraordinary experiences, Darpan Interiors has been at the
+                  forefront of innovative interior design for over a decade.
                 </p>
               </div>
 
@@ -491,12 +631,20 @@ function DarpanInteriorsPortfolioContent() {
                     <CheckCircle className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                    <h3
+                      className={`font-semibold ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
                       Personalized Design Approach
                     </h3>
-                    <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                      Every project is unique, and we tailor our designs to reflect your personal style, needs, and
-                      budget.
+                    <p
+                      className={`${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Every project is unique, and we tailor our designs to
+                      reflect your personal style, needs, and budget.
                     </p>
                   </div>
                 </div>
@@ -512,11 +660,20 @@ function DarpanInteriorsPortfolioContent() {
                     <CheckCircle className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                    <h3
+                      className={`font-semibold ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
                       Sustainable & Eco-Friendly
                     </h3>
-                    <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                      We prioritize sustainable materials and eco-friendly practices in all our design solutions.
+                    <p
+                      className={`${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      We prioritize sustainable materials and eco-friendly
+                      practices in all our design solutions.
                     </p>
                   </div>
                 </div>
@@ -532,12 +689,20 @@ function DarpanInteriorsPortfolioContent() {
                     <CheckCircle className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                    <h3
+                      className={`font-semibold ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
                       End-to-End Service
                     </h3>
-                    <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                      From initial consultation to final installation, we handle every aspect of your interior design
-                      project.
+                    <p
+                      className={`${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      From initial consultation to final installation, we handle
+                      every aspect of your interior design project.
                     </p>
                   </div>
                 </div>
@@ -562,7 +727,9 @@ function DarpanInteriorsPortfolioContent() {
                   src="/elegant-bedroom-interior-design.jpg"
                   alt="Elegant bedroom interior"
                   className="rounded-xl shadow-lg w-full h-auto cursor-pointer hover:shadow-xl transition-shadow"
-                  onClick={() => setSelectedImage("/elegant-bedroom-interior-design.jpg")}
+                  onClick={() =>
+                    setSelectedImage("/elegant-bedroom-interior-design.jpg")
+                  }
                 />
                 <img
                   src="/modern-kitchen.png"
@@ -576,7 +743,9 @@ function DarpanInteriorsPortfolioContent() {
                   src="/luxury-bathroom-interior.jpg"
                   alt="Luxury bathroom interior"
                   className="rounded-xl shadow-lg w-full h-auto cursor-pointer hover:shadow-xl transition-shadow"
-                  onClick={() => setSelectedImage("/luxury-bathroom-interior.jpg")}
+                  onClick={() =>
+                    setSelectedImage("/luxury-bathroom-interior.jpg")
+                  }
                 />
                 <img
                   src="/cozy-living-room.png"
@@ -604,7 +773,11 @@ function DarpanInteriorsPortfolioContent() {
             >
               Our Services
             </Badge>
-            <h2 className={`text-3xl md:text-4xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+            <h2
+              className={`text-3xl md:text-4xl font-bold ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
               Comprehensive{" "}
               <span
                 className={`${
@@ -616,15 +789,20 @@ function DarpanInteriorsPortfolioContent() {
                 Design Solutions
               </span>
             </h2>
-            <p className={`text-lg ${isDarkMode ? "text-gray-300" : "text-gray-600"} max-w-3xl mx-auto`}>
-              From residential homes to commercial spaces, we offer a full range of interior design services tailored to
-              your specific needs and vision.
+            <p
+              className={`text-lg ${
+                isDarkMode ? "text-gray-300" : "text-gray-600"
+              } max-w-3xl mx-auto`}
+            >
+              From residential homes to commercial spaces, we offer a full range
+              of interior design services tailored to your specific needs and
+              vision.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, index) => {
-              const Icon = service.icon
+              const Icon = service.icon;
               return (
                 <Card
                   key={index}
@@ -646,10 +824,18 @@ function DarpanInteriorsPortfolioContent() {
                         <Icon className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                        <h3
+                          className={`text-xl font-semibold ${
+                            isDarkMode ? "text-white" : "text-gray-900"
+                          }`}
+                        >
                           {service.title}
                         </h3>
-                        <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} mt-2`}>
+                        <p
+                          className={`${
+                            isDarkMode ? "text-gray-400" : "text-gray-600"
+                          } mt-2`}
+                        >
                           {service.description}
                         </p>
                       </div>
@@ -662,7 +848,9 @@ function DarpanInteriorsPortfolioContent() {
                             }`}
                           >
                             <CheckCircle
-                              className={`h-4 w-4 ${isDarkMode ? "text-amber-400" : "text-amber-600"} flex-shrink-0`}
+                              className={`h-4 w-4 ${
+                                isDarkMode ? "text-amber-400" : "text-amber-600"
+                              } flex-shrink-0`}
                             />
                             <span>{feature}</span>
                           </li>
@@ -671,7 +859,7 @@ function DarpanInteriorsPortfolioContent() {
                     </div>
                   </CardContent>
                 </Card>
-              )
+              );
             })}
           </div>
 
@@ -693,7 +881,10 @@ function DarpanInteriorsPortfolioContent() {
       </section>
 
       {/* Portfolio Section */}
-      <section id="portfolio" className={`py-20 ${isDarkMode ? "bg-gray-800/50" : "bg-gray-50"}`}>
+      <section
+        id="portfolio"
+        className={`py-20 ${isDarkMode ? "bg-gray-800/50" : "bg-gray-50"}`}
+      >
         <div className="container mx-auto px-4">
           <div className="text-center space-y-4 mb-12">
             <Badge
@@ -706,7 +897,11 @@ function DarpanInteriorsPortfolioContent() {
             >
               Our Portfolio
             </Badge>
-            <h2 className={`text-3xl md:text-4xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+            <h2
+              className={`text-3xl md:text-4xl font-bold ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
               Recent{" "}
               <span
                 className={`${
@@ -718,9 +913,13 @@ function DarpanInteriorsPortfolioContent() {
                 Projects
               </span>
             </h2>
-            <p className={`text-lg ${isDarkMode ? "text-gray-300" : "text-gray-600"} max-w-3xl mx-auto`}>
-              Explore our latest interior design projects and see how we transform spaces into beautiful, functional
-              environments.
+            <p
+              className={`text-lg ${
+                isDarkMode ? "text-gray-300" : "text-gray-600"
+              } max-w-3xl mx-auto`}
+            >
+              Explore our latest interior design projects and see how we
+              transform spaces into beautiful, functional environments.
             </p>
           </div>
 
@@ -739,8 +938,8 @@ function DarpanInteriorsPortfolioContent() {
                         ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
                         : "bg-gradient-to-r from-amber-500 to-orange-600 text-white"
                       : isDarkMode
-                        ? "border-gray-600 text-gray-300 hover:bg-gray-800"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-800"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
                   }
                 >
                   {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -778,8 +977,8 @@ function DarpanInteriorsPortfolioContent() {
                         ? "bg-gray-700 text-white"
                         : "bg-gray-200 text-gray-900"
                       : isDarkMode
-                        ? "border-gray-600 text-gray-300 hover:bg-gray-800"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-800"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
                   }
                 >
                   <Grid className="h-4 w-4" />
@@ -794,8 +993,8 @@ function DarpanInteriorsPortfolioContent() {
                         ? "bg-gray-700 text-white"
                         : "bg-gray-200 text-gray-900"
                       : isDarkMode
-                        ? "border-gray-600 text-gray-300 hover:bg-gray-800"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-800"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
                   }
                 >
                   <List className="h-4 w-4" />
@@ -808,7 +1007,13 @@ function DarpanInteriorsPortfolioContent() {
           {projectsLoading && (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto"></div>
-              <p className={`mt-4 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Loading projects...</p>
+              <p
+                className={`mt-4 ${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Loading projects...
+              </p>
             </div>
           )}
 
@@ -829,14 +1034,16 @@ function DarpanInteriorsPortfolioContent() {
                     >
                       <div className="relative overflow-hidden rounded-t-lg">
                         <img
-                          src={project.images[0] || "/placeholder.svg"}
+                          src={project.images?.[0] || "/placeholder.svg"}
                           alt={project.title}
                           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                         <div className="absolute top-4 left-4">
                           <Badge
                             className={`${
-                              isDarkMode ? "bg-gray-900/80 text-gray-100" : "bg-white/80 text-gray-900"
+                              isDarkMode
+                                ? "bg-gray-900/80 text-gray-100"
+                                : "bg-white/80 text-gray-900"
                             } backdrop-blur-sm`}
                           >
                             {project.category}
@@ -847,11 +1054,15 @@ function DarpanInteriorsPortfolioContent() {
                             size="icon"
                             variant="secondary"
                             className={`${
-                              isDarkMode ? "bg-gray-900/80 hover:bg-gray-800/80" : "bg-white/80 hover:bg-gray-100/80"
+                              isDarkMode
+                                ? "bg-gray-900/80 hover:bg-gray-800/80"
+                                : "bg-white/80 hover:bg-gray-100/80"
                             } backdrop-blur-sm`}
                             onClick={(e) => {
-                              e.stopPropagation()
-                              setSelectedImage(project.images[0])
+                              e.stopPropagation();
+                              setSelectedImage(
+                                project.images?.[0] || "/placeholder.svg"
+                              );
                             }}
                           >
                             <Eye className="h-4 w-4" />
@@ -860,16 +1071,32 @@ function DarpanInteriorsPortfolioContent() {
                       </div>
                       <CardContent className="p-6">
                         <div className="space-y-3">
-                          <h3 className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                          <h3
+                            className={`text-xl font-semibold ${
+                              isDarkMode ? "text-white" : "text-gray-900"
+                            }`}
+                          >
                             {project.title}
                           </h3>
-                          <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} line-clamp-2`}>
+                          <p
+                            className={`${
+                              isDarkMode ? "text-gray-400" : "text-gray-600"
+                            } line-clamp-2`}
+                          >
                             {project.description}
                           </p>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
-                              <Clock className={`h-4 w-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
-                              <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                              <Clock
+                                className={`h-4 w-4 ${
+                                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                                }`}
+                              />
+                              <span
+                                className={`text-sm ${
+                                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                                }`}
+                              >
                                 {project.duration}
                               </span>
                             </div>
@@ -907,7 +1134,7 @@ function DarpanInteriorsPortfolioContent() {
                         <div className="flex gap-6">
                           <div className="relative w-32 h-32 flex-shrink-0">
                             <img
-                              src={project.images[0] || "/placeholder.svg"}
+                              src={project.images?.[0] || "/placeholder.svg"}
                               alt={project.title}
                               className="w-full h-full object-cover rounded-lg"
                             />
@@ -915,11 +1142,15 @@ function DarpanInteriorsPortfolioContent() {
                               size="icon"
                               variant="secondary"
                               className={`absolute top-2 right-2 ${
-                                isDarkMode ? "bg-gray-900/80 hover:bg-gray-800/80" : "bg-white/80 hover:bg-gray-100/80"
+                                isDarkMode
+                                  ? "bg-gray-900/80 hover:bg-gray-800/80"
+                                  : "bg-white/80 hover:bg-gray-100/80"
                               } backdrop-blur-sm`}
                               onClick={(e) => {
-                                e.stopPropagation()
-                                setSelectedImage(project.images[0])
+                                e.stopPropagation();
+                                setSelectedImage(
+                                  project.images?.[0] || "/placeholder.svg"
+                                );
                               }}
                             >
                               <Eye className="h-4 w-4" />
@@ -928,13 +1159,19 @@ function DarpanInteriorsPortfolioContent() {
                           <div className="flex-1 space-y-3">
                             <div className="flex items-start justify-between">
                               <div>
-                                <h3 className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                                <h3
+                                  className={`text-xl font-semibold ${
+                                    isDarkMode ? "text-white" : "text-gray-900"
+                                  }`}
+                                >
                                   {project.title}
                                 </h3>
                                 <Badge
                                   variant="secondary"
                                   className={`mt-1 ${
-                                    isDarkMode ? "bg-amber-500/20 text-amber-400" : "bg-amber-500/20 text-amber-600"
+                                    isDarkMode
+                                      ? "bg-amber-500/20 text-amber-400"
+                                      : "bg-amber-500/20 text-amber-600"
                                   }`}
                                 >
                                   {project.category}
@@ -953,18 +1190,48 @@ function DarpanInteriorsPortfolioContent() {
                                 <ArrowRight className="h-4 w-4 ml-1" />
                               </Button>
                             </div>
-                            <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{project.description}</p>
+                            <p
+                              className={`${
+                                isDarkMode ? "text-gray-400" : "text-gray-600"
+                              }`}
+                            >
+                              {project.description}
+                            </p>
                             <div className="flex items-center space-x-4">
                               <div className="flex items-center space-x-2">
-                                <Clock className={`h-4 w-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
-                                <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                                <Clock
+                                  className={`h-4 w-4 ${
+                                    isDarkMode
+                                      ? "text-gray-400"
+                                      : "text-gray-500"
+                                  }`}
+                                />
+                                <span
+                                  className={`text-sm ${
+                                    isDarkMode
+                                      ? "text-gray-400"
+                                      : "text-gray-600"
+                                  }`}
+                                >
                                   {project.duration}
                                 </span>
                               </div>
                               <div className="flex items-center space-x-2">
-                                <Eye className={`h-4 w-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
-                                <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                                  {project.images.length} images
+                                <Eye
+                                  className={`h-4 w-4 ${
+                                    isDarkMode
+                                      ? "text-gray-400"
+                                      : "text-gray-500"
+                                  }`}
+                                />
+                                <span
+                                  className={`text-sm ${
+                                    isDarkMode
+                                      ? "text-gray-400"
+                                      : "text-gray-600"
+                                  }`}
+                                >
+                                  {project.images?.length || 0} images
                                 </span>
                               </div>
                             </div>
@@ -1005,18 +1272,30 @@ function DarpanInteriorsPortfolioContent() {
                         : "bg-gradient-to-br from-gray-100 to-gray-200"
                     } rounded-full flex items-center justify-center mx-auto mb-4`}
                   >
-                    <Search className={`h-8 w-8 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+                    <Search
+                      className={`h-8 w-8 ${
+                        isDarkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    />
                   </div>
-                  <h3 className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"} mb-2`}>
+                  <h3
+                    className={`text-xl font-semibold ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    } mb-2`}
+                  >
                     No projects found
                   </h3>
-                  <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} mb-4`}>
+                  <p
+                    className={`${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    } mb-4`}
+                  >
                     Try adjusting your search or filter criteria
                   </p>
                   <Button
                     onClick={() => {
-                      setProjectFilter("all")
-                      setProjectSearch("")
+                      setProjectFilter("all");
+                      setProjectSearch("");
                     }}
                     variant="outline"
                     className={`${
@@ -1048,7 +1327,11 @@ function DarpanInteriorsPortfolioContent() {
             >
               Client Testimonials
             </Badge>
-            <h2 className={`text-3xl md:text-4xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+            <h2
+              className={`text-3xl md:text-4xl font-bold ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
               What Our{" "}
               <span
                 className={`${
@@ -1060,9 +1343,13 @@ function DarpanInteriorsPortfolioContent() {
                 Clients Say
               </span>
             </h2>
-            <p className={`text-lg ${isDarkMode ? "text-gray-300" : "text-gray-600"} max-w-3xl mx-auto`}>
-              Don't just take our word for it. Here's what our satisfied clients have to say about their experience
-              working with Darpan Interiors.
+            <p
+              className={`text-lg ${
+                isDarkMode ? "text-gray-300" : "text-gray-600"
+              } max-w-3xl mx-auto`}
+            >
+              Don't just take our word for it. Here's what our satisfied clients
+              have to say about their experience working with Darpan Interiors.
             </p>
           </div>
 
@@ -1070,7 +1357,13 @@ function DarpanInteriorsPortfolioContent() {
           {testimonialsLoading && (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto"></div>
-              <p className={`mt-4 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Loading testimonials...</p>
+              <p
+                className={`mt-4 ${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Loading testimonials...
+              </p>
             </div>
           )}
 
@@ -1087,7 +1380,9 @@ function DarpanInteriorsPortfolioContent() {
                 <CardContent className="p-8 md:p-12">
                   <div className="text-center space-y-6">
                     <Quote
-                      className={`h-12 w-12 ${isDarkMode ? "text-amber-400" : "text-amber-600"} mx-auto opacity-50`}
+                      className={`h-12 w-12 ${
+                        isDarkMode ? "text-amber-400" : "text-amber-600"
+                      } mx-auto opacity-50`}
                     />
                     <blockquote
                       className={`text-xl md:text-2xl font-medium leading-relaxed ${
@@ -1099,7 +1394,10 @@ function DarpanInteriorsPortfolioContent() {
                     <div className="flex items-center justify-center space-x-4">
                       <Avatar className="h-16 w-16">
                         <AvatarImage
-                          src={testimonials[currentTestimonial]?.avatar || "/placeholder.svg"}
+                          src={
+                            testimonials[currentTestimonial]?.avatar ||
+                            "/placeholder.svg"
+                          }
                           alt={testimonials[currentTestimonial]?.name}
                         />
                         <AvatarFallback
@@ -1116,10 +1414,18 @@ function DarpanInteriorsPortfolioContent() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="text-left">
-                        <div className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                        <div
+                          className={`font-semibold ${
+                            isDarkMode ? "text-white" : "text-gray-900"
+                          }`}
+                        >
                           {testimonials[currentTestimonial]?.name}
                         </div>
-                        <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                        <div
+                          className={`text-sm ${
+                            isDarkMode ? "text-gray-400" : "text-gray-600"
+                          }`}
+                        >
                           {testimonials[currentTestimonial]?.role}
                         </div>
                         <div className="flex items-center mt-1">
@@ -1127,13 +1433,14 @@ function DarpanInteriorsPortfolioContent() {
                             <Star
                               key={i}
                               className={`h-4 w-4 ${
-                                i < (testimonials[currentTestimonial]?.rating || 0)
+                                i <
+                                (testimonials[currentTestimonial]?.rating || 0)
                                   ? isDarkMode
                                     ? "text-amber-400 fill-amber-400"
                                     : "text-amber-500 fill-amber-500"
                                   : isDarkMode
-                                    ? "text-gray-600"
-                                    : "text-gray-300"
+                                  ? "text-gray-600"
+                                  : "text-gray-300"
                               }`}
                             />
                           ))}
@@ -1150,7 +1457,10 @@ function DarpanInteriorsPortfolioContent() {
                   variant="outline"
                   size="icon"
                   onClick={() =>
-                    setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)
+                    setCurrentTestimonial(
+                      (prev) =>
+                        (prev - 1 + testimonials.length) % testimonials.length
+                    )
                   }
                   className={`${
                     isDarkMode
@@ -1171,13 +1481,21 @@ function DarpanInteriorsPortfolioContent() {
                       : "border-gray-300 text-gray-700 hover:bg-gray-50"
                   }`}
                 >
-                  {isTestimonialPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  {isTestimonialPlaying ? (
+                    <Pause className="h-4 w-4" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
                 </Button>
 
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)}
+                  onClick={() =>
+                    setCurrentTestimonial(
+                      (prev) => (prev + 1) % testimonials.length
+                    )
+                  }
                   className={`${
                     isDarkMode
                       ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
@@ -1200,8 +1518,8 @@ function DarpanInteriorsPortfolioContent() {
                           ? "bg-amber-400 w-8"
                           : "bg-amber-600 w-8"
                         : isDarkMode
-                          ? "bg-gray-600 hover:bg-gray-500"
-                          : "bg-gray-300 hover:bg-gray-400"
+                        ? "bg-gray-600 hover:bg-gray-500"
+                        : "bg-gray-300 hover:bg-gray-400"
                     }`}
                   />
                 ))}
@@ -1219,12 +1537,22 @@ function DarpanInteriorsPortfolioContent() {
                     : "bg-gradient-to-br from-gray-100 to-gray-200"
                 } rounded-full flex items-center justify-center mx-auto mb-4`}
               >
-                <MessageSquare className={`h-8 w-8 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+                <MessageSquare
+                  className={`h-8 w-8 ${
+                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                />
               </div>
-              <h3 className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"} mb-2`}>
+              <h3
+                className={`text-xl font-semibold ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                } mb-2`}
+              >
                 No testimonials yet
               </h3>
-              <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+              <p
+                className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+              >
                 Client testimonials will appear here once they're added.
               </p>
             </div>
@@ -1233,7 +1561,10 @@ function DarpanInteriorsPortfolioContent() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className={`py-20 ${isDarkMode ? "bg-gray-800/50" : "bg-gray-50"}`}>
+      <section
+        id="contact"
+        className={`py-20 ${isDarkMode ? "bg-gray-800/50" : "bg-gray-50"}`}
+      >
         <div className="container mx-auto px-4">
           <div className="text-center space-y-4 mb-16">
             <Badge
@@ -1246,7 +1577,11 @@ function DarpanInteriorsPortfolioContent() {
             >
               Get In Touch
             </Badge>
-            <h2 className={`text-3xl md:text-4xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+            <h2
+              className={`text-3xl md:text-4xl font-bold ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
               Let's Create Something{" "}
               <span
                 className={`${
@@ -1258,9 +1593,14 @@ function DarpanInteriorsPortfolioContent() {
                 Beautiful Together
               </span>
             </h2>
-            <p className={`text-lg ${isDarkMode ? "text-gray-300" : "text-gray-600"} max-w-3xl mx-auto`}>
-              Ready to transform your space? Get in touch with us today for a free consultation and let's discuss how we
-              can bring your vision to life.
+            <p
+              className={`text-lg ${
+                isDarkMode ? "text-gray-300" : "text-gray-600"
+              } max-w-3xl mx-auto`}
+            >
+              Ready to transform your space? Get in touch with us today for a
+              free consultation and let's discuss how we can bring your vision
+              to life.
             </p>
           </div>
 
@@ -1279,7 +1619,9 @@ function DarpanInteriorsPortfolioContent() {
                     <div className="space-y-2">
                       <Label
                         htmlFor="firstName"
-                        className={`text-sm font-medium ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}
+                        className={`text-sm font-medium ${
+                          isDarkMode ? "text-gray-200" : "text-gray-700"
+                        }`}
                       >
                         First Name
                       </Label>
@@ -1296,7 +1638,9 @@ function DarpanInteriorsPortfolioContent() {
                     <div className="space-y-2">
                       <Label
                         htmlFor="lastName"
-                        className={`text-sm font-medium ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}
+                        className={`text-sm font-medium ${
+                          isDarkMode ? "text-gray-200" : "text-gray-700"
+                        }`}
                       >
                         Last Name
                       </Label>
@@ -1315,7 +1659,9 @@ function DarpanInteriorsPortfolioContent() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="email"
-                      className={`text-sm font-medium ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}
+                      className={`text-sm font-medium ${
+                        isDarkMode ? "text-gray-200" : "text-gray-700"
+                      }`}
                     >
                       Email Address
                     </Label>
@@ -1334,7 +1680,9 @@ function DarpanInteriorsPortfolioContent() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="phone"
-                      className={`text-sm font-medium ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}
+                      className={`text-sm font-medium ${
+                        isDarkMode ? "text-gray-200" : "text-gray-700"
+                      }`}
                     >
                       Phone Number
                     </Label>
@@ -1353,7 +1701,9 @@ function DarpanInteriorsPortfolioContent() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="subject"
-                      className={`text-sm font-medium ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}
+                      className={`text-sm font-medium ${
+                        isDarkMode ? "text-gray-200" : "text-gray-700"
+                      }`}
                     >
                       Subject
                     </Label>
@@ -1371,7 +1721,9 @@ function DarpanInteriorsPortfolioContent() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="message"
-                      className={`text-sm font-medium ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}
+                      className={`text-sm font-medium ${
+                        isDarkMode ? "text-gray-200" : "text-gray-700"
+                      }`}
                     >
                       Message
                     </Label>
@@ -1405,7 +1757,11 @@ function DarpanInteriorsPortfolioContent() {
             {/* Contact Information */}
             <div className="space-y-8">
               <div>
-                <h3 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"} mb-6`}>
+                <h3
+                  className={`text-2xl font-bold ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  } mb-6`}
+                >
                   Contact Information
                 </h3>
                 <div className="space-y-6">
@@ -1420,9 +1776,25 @@ function DarpanInteriorsPortfolioContent() {
                       <Mail className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h4 className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>Email</h4>
-                      <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>info@darpaninteriors.com</p>
-                      <p className={`text-sm ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>
+                      <h4
+                        className={`font-semibold ${
+                          isDarkMode ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        Email
+                      </h4>
+                      <p
+                        className={`${
+                          isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        info@darpaninteriors.com
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          isDarkMode ? "text-gray-500" : "text-gray-500"
+                        }`}
+                      >
                         We'll respond within 24 hours
                       </p>
                     </div>
@@ -1439,9 +1811,27 @@ function DarpanInteriorsPortfolioContent() {
                       <Phone className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h4 className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>Phone</h4>
-                      <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>+1 (555) 123-4567</p>
-                      <p className={`text-sm ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>Mon-Fri 9AM-6PM PST</p>
+                      <h4
+                        className={`font-semibold ${
+                          isDarkMode ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        Phone
+                      </h4>
+                      <p
+                        className={`${
+                          isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        +1 (555) 123-4567
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          isDarkMode ? "text-gray-500" : "text-gray-500"
+                        }`}
+                      >
+                        Mon-Fri 9AM-6PM PST
+                      </p>
                     </div>
                   </div>
 
@@ -1456,13 +1846,29 @@ function DarpanInteriorsPortfolioContent() {
                       <MapPin className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h4 className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>Office</h4>
-                      <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                      <h4
+                        className={`font-semibold ${
+                          isDarkMode ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        Office
+                      </h4>
+                      <p
+                        className={`${
+                          isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
                         123 Design Street
                         <br />
                         Beverly Hills, CA 90210
                       </p>
-                      <p className={`text-sm ${isDarkMode ? "text-gray-500" : "text-gray-500"}`}>By appointment only</p>
+                      <p
+                        className={`text-sm ${
+                          isDarkMode ? "text-gray-500" : "text-gray-500"
+                        }`}
+                      >
+                        By appointment only
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1470,7 +1876,13 @@ function DarpanInteriorsPortfolioContent() {
 
               {/* Social Media */}
               <div>
-                <h4 className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"} mb-4`}>Follow Us</h4>
+                <h4
+                  className={`font-semibold ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  } mb-4`}
+                >
+                  Follow Us
+                </h4>
                 <div className="flex space-x-4">
                   <Button
                     variant="outline"
@@ -1541,7 +1953,11 @@ function DarpanInteriorsPortfolioContent() {
 
       {/* Footer */}
       <footer
-        className={`py-12 ${isDarkMode ? "bg-gray-900 border-gray-800" : "bg-gray-100 border-gray-200"} border-t`}
+        className={`py-12 ${
+          isDarkMode
+            ? "bg-gray-900 border-gray-800"
+            : "bg-gray-100 border-gray-200"
+        } border-t`}
       >
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
@@ -1558,14 +1974,22 @@ function DarpanInteriorsPortfolioContent() {
                   <Sparkles className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h3 className={`text-lg font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                  <h3
+                    className={`text-lg font-bold ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
                     Darpan Interiors
                   </h3>
                 </div>
               </div>
-              <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-sm`}>
-                Transforming spaces and creating beautiful, functional environments that reflect your unique style and
-                personality.
+              <p
+                className={`${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                } text-sm`}
+              >
+                Transforming spaces and creating beautiful, functional
+                environments that reflect your unique style and personality.
               </p>
               <div className="flex space-x-3">
                 <Button
@@ -1606,14 +2030,22 @@ function DarpanInteriorsPortfolioContent() {
 
             {/* Quick Links */}
             <div className="space-y-4">
-              <h4 className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>Quick Links</h4>
+              <h4
+                className={`font-semibold ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Quick Links
+              </h4>
               <ul className="space-y-2">
                 {navigationItems.map((item) => (
                   <li key={item.id}>
                     <button
                       onClick={() => scrollToSection(item.id)}
                       className={`text-sm ${
-                        isDarkMode ? "text-gray-400 hover:text-white" : "text-gray-600 hover:text-gray-900"
+                        isDarkMode
+                          ? "text-gray-400 hover:text-white"
+                          : "text-gray-600 hover:text-gray-900"
                       } transition-colors`}
                     >
                       {item.label}
@@ -1625,26 +2057,56 @@ function DarpanInteriorsPortfolioContent() {
 
             {/* Services */}
             <div className="space-y-4">
-              <h4 className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>Services</h4>
+              <h4
+                className={`font-semibold ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Services
+              </h4>
               <ul className="space-y-2">
                 <li>
-                  <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                  <span
+                    className={`text-sm ${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
                     Residential Design
                   </span>
                 </li>
                 <li>
-                  <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Commercial Spaces</span>
+                  <span
+                    className={`text-sm ${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    Commercial Spaces
+                  </span>
                 </li>
                 <li>
-                  <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                  <span
+                    className={`text-sm ${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
                     Color Consultation
                   </span>
                 </li>
                 <li>
-                  <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Space Planning</span>
+                  <span
+                    className={`text-sm ${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    Space Planning
+                  </span>
                 </li>
                 <li>
-                  <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                  <span
+                    className={`text-sm ${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
                     Furniture Selection
                   </span>
                 </li>
@@ -1653,15 +2115,37 @@ function DarpanInteriorsPortfolioContent() {
 
             {/* Contact */}
             <div className="space-y-4">
-              <h4 className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>Contact</h4>
+              <h4
+                className={`font-semibold ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Contact
+              </h4>
               <div className="space-y-2">
-                <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                <p
+                  className={`text-sm ${
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
                   123 Design Street
                   <br />
                   Beverly Hills, CA 90210
                 </p>
-                <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>+1 (555) 123-4567</p>
-                <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>info@darpaninteriors.com</p>
+                <p
+                  className={`text-sm ${
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  +1 (555) 123-4567
+                </p>
+                <p
+                  className={`text-sm ${
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  info@darpaninteriors.com
+                </p>
               </div>
             </div>
           </div>
@@ -1671,17 +2155,29 @@ function DarpanInteriorsPortfolioContent() {
               isDarkMode ? "border-gray-800" : "border-gray-200"
             } mt-8 pt-8 flex flex-col md:flex-row justify-between items-center`}
           >
-            <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+            <p
+              className={`text-sm ${
+                isDarkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
               © 2025 Darpan Interiors. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <button
-                className={`text-sm ${isDarkMode ? "text-gray-400 hover:text-white" : "text-gray-600 hover:text-gray-900"} transition-colors`}
+                className={`text-sm ${
+                  isDarkMode
+                    ? "text-gray-400 hover:text-white"
+                    : "text-gray-600 hover:text-gray-900"
+                } transition-colors`}
               >
                 Privacy Policy
               </button>
               <button
-                className={`text-sm ${isDarkMode ? "text-gray-400 hover:text-white" : "text-gray-600 hover:text-gray-900"} transition-colors`}
+                className={`text-sm ${
+                  isDarkMode
+                    ? "text-gray-400 hover:text-white"
+                    : "text-gray-600 hover:text-gray-900"
+                } transition-colors`}
               >
                 Terms of Service
               </button>
@@ -1690,7 +2186,7 @@ function DarpanInteriorsPortfolioContent() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
 
 export default function DarpanInteriorsPortfolio() {
@@ -1704,5 +2200,5 @@ export default function DarpanInteriorsPortfolio() {
         </TestimonialsProvider>
       </ProjectsProvider>
     </AuthProvider>
-  )
+  );
 }
