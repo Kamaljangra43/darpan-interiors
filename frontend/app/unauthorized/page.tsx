@@ -1,60 +1,56 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+"use client"
 
-export default function Unauthorized() {
-  const router = useRouter();
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ShieldAlert } from "lucide-react"
+
+export default function UnauthorizedPage() {
+  const router = useRouter()
+  const [countdown, setCountdown] = useState(5)
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+      return () => clearTimeout(timer)
+    } else {
+      router.push("/")
+    }
+  }, [countdown, router])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <Card className="w-full max-w-md">
-        <CardContent className="pt-8 pb-8 text-center">
-          {/* Error Icon */}
-          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-            <svg
-              className="w-8 h-8 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
+        <CardHeader className="space-y-1 text-center">
+          <div className="flex justify-center mb-4">
+            <ShieldAlert className="h-16 w-16 text-red-500" />
+          </div>
+          <CardTitle className="text-2xl font-bold">Access Denied</CardTitle>
+          <CardDescription>Your email address is not authorized to access the admin dashboard</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-4 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+            <p className="text-sm text-red-800 dark:text-red-200 text-center">
+              Only whitelisted email addresses can access this area. Please contact the administrator if you believe
+              this is an error.
+            </p>
           </div>
 
-          {/* Error Message */}
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Access Denied
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Your account is not authorized to access the admin panel.
-            <br />
-            Please contact the administrator if you believe this is an error.
+          <p className="text-sm text-center text-muted-foreground">
+            Redirecting to home page in {countdown} seconds...
           </p>
 
-          {/* Actions */}
-          <div className="space-y-3">
-            <Button
-              onClick={() => router.push("/")}
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
-            >
-              Go to Home
+          <div className="flex gap-2">
+            <Button onClick={() => router.push("/")} className="flex-1" variant="default">
+              Go Home Now
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => router.push("/admin/login")}
-              className="w-full"
-            >
-              Try Different Account
+            <Button onClick={() => router.push("/admin/login")} className="flex-1" variant="outline">
+              Try Again
             </Button>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

@@ -1,32 +1,35 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import type React from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 
 interface ThemeContextType {
   isDarkMode: boolean
-  toggleDarkMode: () => void
+  toggleTheme: () => void
+  setIsDarkMode: (value: boolean) => void
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
-    // Load theme preference from localStorage
-    const savedTheme = localStorage.getItem("darpan_theme")
-    if (savedTheme === "dark") {
-      setIsDarkMode(true)
+    const saved = localStorage.getItem("darpan_theme")
+    if (saved) {
+      setIsDarkMode(saved === "dark")
     }
   }, [])
 
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode
-    setIsDarkMode(newMode)
-    localStorage.setItem("darpan_theme", newMode ? "dark" : "light")
+  useEffect(() => {
+    localStorage.setItem("darpan_theme", isDarkMode ? "dark" : "light")
+  }, [isDarkMode])
+
+  const toggleTheme = () => {
+    setIsDarkMode((prev) => !prev)
   }
 
-  return <ThemeContext.Provider value={{ isDarkMode, toggleDarkMode }}>{children}</ThemeContext.Provider>
+  return <ThemeContext.Provider value={{ isDarkMode, toggleTheme, setIsDarkMode }}>{children}</ThemeContext.Provider>
 }
 
 export function useTheme() {

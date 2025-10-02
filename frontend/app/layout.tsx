@@ -1,31 +1,31 @@
-import { SessionProvider } from "next-auth/react";
-import { AuthProvider } from "@/contexts/auth-context";
-import { ThemeProvider } from "@/contexts/theme-context";
-import { ProjectsProvider } from "@/contexts/projects-context";
-import { TestimonialsProvider } from "@/contexts/testimonials-context";
-import "./globals.css";
+import type React from "react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { SessionProvider } from "next-auth/react"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 
-export const metadata = {
-  title: "Darpan Interiors - Transforming Spaces, Creating Dreams",
-  description: "Professional interior design services",
-};
+const inter = Inter({ subsets: ["latin"] })
 
-export default function RootLayout({
+export const metadata: Metadata = {
+  title: "Darpan Interiors - Portfolio",
+  description: "Showcase of interior design projects",
+    generator: 'v0.app'
+}
+
+export default async function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
+  const session = await getServerSession(authOptions)
+
   return (
     <html lang="en">
-      <body>
-        <SessionProvider>
-          <ThemeProvider>
-            <ProjectsProvider>
-              <TestimonialsProvider>{children}</TestimonialsProvider>
-            </ProjectsProvider>
-          </ThemeProvider>
-        </SessionProvider>
+      <body className={inter.className}>
+        <SessionProvider session={session}>{children}</SessionProvider>
       </body>
     </html>
-  );
+  )
 }

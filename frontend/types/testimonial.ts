@@ -1,8 +1,9 @@
 export interface Testimonial {
-  id: string;
-  name: string;
-  role: string;
-  content: string;
-  rating: number;
-  avatar?: string;
+  id: number
+  name: string
+  role: string
+  content: string
+  rating: number
+  avatar?: string
+  date?: string
 }
