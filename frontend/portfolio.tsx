@@ -1,8 +1,6 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useSession, signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -53,20 +51,15 @@ import {
 } from "lucide-react"
 import { useTheme, ThemeProvider } from "./contexts/theme-context"
 import { ProjectsProvider, useProjects } from "./contexts/projects-context"
-import { TestimonialsProvider, useTestimonials } from "./contexts/testimonials-context"
-import AdminDashboard from "./components/admin-dashboard"
 import SettingsModal from "./components/settings-modal"
 import ConsultationModal from "./components/consultation-modal"
-import { ProjectDetailModal } from "./components/project-detail-modal"
-import { ImageViewerModal } from "./components/image-viewer-modal"
+import ProjectDetailModal from "./components/project-detail-modal"
+import ImageViewerModal from "./components/image-viewer-modal"
 import type { Project } from "./types/project"
 
 function DarpanInteriorsPortfolioContent() {
   const { isDarkMode } = useTheme()
-  const { data: session, status } = useSession()
-  const router = useRouter()
   const { projects, loading: projectsLoading } = useProjects()
-  const { testimonials, loading: testimonialsLoading } = useTestimonials()
 
   const [activeSection, setActiveSection] = useState("home")
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -96,6 +89,34 @@ function DarpanInteriorsPortfolioContent() {
     "/cozy-living-room.png",
   ]
 
+  // Testimonials data
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      role: "Homeowner",
+      content:
+        "Working with Darpan Interiors was an absolute pleasure. They transformed our house into a home that perfectly reflects our style and personality.",
+      avatar: "/placeholder.svg?height=100&width=100",
+      rating: 5,
+    },
+    {
+      name: "Michael Chen",
+      role: "Business Owner",
+      content:
+        "The team's attention to detail and creative vision exceeded our expectations. Our office space now inspires productivity and creativity.",
+      avatar: "/placeholder.svg?height=100&width=100",
+      rating: 5,
+    },
+    {
+      name: "Emily Rodriguez",
+      role: "Homeowner",
+      content:
+        "From the initial consultation to the final reveal, everything was seamless. The results are stunning and we couldn't be happier!",
+      avatar: "/placeholder.svg?height=100&width=100",
+      rating: 5,
+    },
+  ]
+
   // Auto-rotate testimonials
   useEffect(() => {
     if (!isTestimonialPlaying || testimonials.length <= 1) return
@@ -121,6 +142,27 @@ function DarpanInteriorsPortfolioContent() {
       }
     }
   }, [isAutoPlaying, heroImages.length])
+
+  // Track active section on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = navigationItems.map((item) => item.id)
+      const scrollPosition = window.scrollY + 100
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = document.getElementById(sections[i])
+        if (section && section.offsetTop <= scrollPosition) {
+          setActiveSection(sections[i])
+          break
+        }
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    handleScroll()
+
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   // Smooth scroll to section
   const scrollToSection = (sectionId: string) => {
@@ -156,7 +198,7 @@ function DarpanInteriorsPortfolioContent() {
     const matchesSearch =
       projectSearch === "" ||
       project.title.toLowerCase().includes(projectSearch.toLowerCase()) ||
-      (project.description || "").toLowerCase().includes(projectSearch.toLowerCase())
+      project.description.toLowerCase().includes(projectSearch.toLowerCase())
     return matchesFilter && matchesSearch
   })
 
@@ -220,19 +262,10 @@ function DarpanInteriorsPortfolioContent() {
     { id: "contact", label: "Contact", icon: Mail },
   ]
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/" })
-  }
-
-  const isAuthenticated = status === "authenticated" && session?.user?.isAdmin === true
-
   return (
     <div className={`min-h-screen ${isDarkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
-      {/* Admin Panel - Only show if user is admin */}
-      {session?.user?.isAdmin && <AdminDashboard />}
-
       {/* Settings Modal */}
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} isAdmin={session?.user?.isAdmin} />}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
 
       {/* Consultation Modal */}
       {showConsultation && <ConsultationModal onClose={() => setShowConsultation(false)} />}
@@ -254,7 +287,10 @@ function DarpanInteriorsPortfolioContent() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center space-x-3">
+            <button
+              onClick={() => scrollToSection("home")}
+              className="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer"
+            >
               <div
                 className={`w-10 h-10 ${
                   isDarkMode
@@ -268,7 +304,7 @@ function DarpanInteriorsPortfolioContent() {
                 <h1 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>Darpan Interiors</h1>
                 <p className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Transforming Spaces</p>
               </div>
-            </div>
+            </button>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
@@ -297,15 +333,6 @@ function DarpanInteriorsPortfolioContent() {
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-3">
-              {session?.user?.isAdmin && (
-                <Button
-                  onClick={() => router.push("/admin/dashboard")}
-                  variant="outline"
-                  className="hidden sm:flex border-amber-500 text-amber-600 hover:bg-amber-50"
-                >
-                  Admin
-                </Button>
-              )}
               <Button
                 onClick={() => setShowConsultation(true)}
                 className={`hidden sm:flex ${
@@ -362,29 +389,17 @@ function DarpanInteriorsPortfolioContent() {
                     </button>
                   )
                 })}
-                {session?.user?.isAdmin && (
-                  <Button
-                    onClick={() => {
-                      router.push("/admin/dashboard")
-                      setIsMenuOpen(false)
-                    }}
-                    variant="outline"
-                    className="w-full border-amber-500 text-amber-600 hover:bg-amber-50"
-                  >
-                    Admin Dashboard
-                  </Button>
-                )}
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                   <Button
                     onClick={() => {
                       setShowConsultation(true)
                       setIsMenuOpen(false)
                     }}
-                    className={`${
+                    className={`w-full ${
                       isDarkMode
                         ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
                         : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-                    } w-full text-white`}
+                    } text-white`}
                   >
                     <Calendar className="h-4 w-4 mr-2" />
                     Book Consultation
@@ -510,7 +525,7 @@ function DarpanInteriorsPortfolioContent() {
                   ))}
                 </div>
 
-                {/* Navigation Arrows - Always visible on hover */}
+                {/* Navigation Arrows */}
                 {heroImages.length > 1 && (
                   <>
                     <button
@@ -960,7 +975,7 @@ function DarpanInteriorsPortfolioContent() {
                     >
                       <div className="relative overflow-hidden rounded-t-lg">
                         <img
-                          src={(project.images && project.images[0]) || "/placeholder.svg"}
+                          src={project.images[0] || "/placeholder.svg"}
                           alt={project.title}
                           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         />
@@ -978,11 +993,13 @@ function DarpanInteriorsPortfolioContent() {
                             size="icon"
                             variant="secondary"
                             className={`${
-                              isDarkMode ? "bg-gray-900/80 hover:bg-gray-800/80" : "bg-white/80 hover:bg-gray-100/80"
-                            } backdrop-blur-sm`}
+                              isDarkMode
+                                ? "bg-gradient-to-br from-amber-500/90 to-orange-500/90 hover:from-amber-600 hover:to-orange-600 text-white border-0"
+                                : "bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
+                            } backdrop-blur-sm shadow-lg`}
                             onClick={(e) => {
                               e.stopPropagation()
-                              setSelectedImage((project.images && project.images[0]) || "")
+                              setSelectedImage(project.images[0])
                             }}
                           >
                             <Eye className="h-4 w-4" />
@@ -1001,7 +1018,7 @@ function DarpanInteriorsPortfolioContent() {
                             <div className="flex items-center space-x-2">
                               <Clock className={`h-4 w-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
                               <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                                {project.duration || project.year}
+                                {project.duration}
                               </span>
                             </div>
                             <Button
@@ -1038,7 +1055,7 @@ function DarpanInteriorsPortfolioContent() {
                         <div className="flex gap-6">
                           <div className="relative w-32 h-32 flex-shrink-0">
                             <img
-                              src={(project.images && project.images[0]) || "/placeholder.svg"}
+                              src={project.images[0] || "/placeholder.svg"}
                               alt={project.title}
                               className="w-full h-full object-cover rounded-lg"
                             />
@@ -1046,11 +1063,13 @@ function DarpanInteriorsPortfolioContent() {
                               size="icon"
                               variant="secondary"
                               className={`absolute top-2 right-2 ${
-                                isDarkMode ? "bg-gray-900/80 hover:bg-gray-800/80" : "bg-white/80 hover:bg-gray-100/80"
-                              } backdrop-blur-sm`}
+                                isDarkMode
+                                  ? "bg-gradient-to-br from-amber-500/90 to-orange-500/90 hover:from-amber-600 hover:to-orange-600 text-white"
+                                  : "bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                              }`}
                               onClick={(e) => {
                                 e.stopPropagation()
-                                setSelectedImage((project.images && project.images[0]) || "")
+                                setSelectedImage(project.images[0])
                               }}
                             >
                               <Eye className="h-4 w-4" />
@@ -1089,13 +1108,13 @@ function DarpanInteriorsPortfolioContent() {
                               <div className="flex items-center space-x-2">
                                 <Clock className={`h-4 w-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
                                 <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                                  {project.duration || project.year}
+                                  {project.duration}
                                 </span>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <Eye className={`h-4 w-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
                                 <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                                  {(project.images && project.images.length) || 0} images
+                                  {project.images.length} images
                                 </span>
                               </div>
                             </div>
@@ -1197,169 +1216,136 @@ function DarpanInteriorsPortfolioContent() {
             </p>
           </div>
 
-          {/* Loading State */}
-          {testimonialsLoading && (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto"></div>
-              <p className={`mt-4 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Loading testimonials...</p>
-            </div>
-          )}
-
           {/* Testimonials Carousel */}
-          {!testimonialsLoading && testimonials.length > 0 && (
-            <div className="relative max-w-4xl mx-auto">
-              <Card
-                className={`${
-                  isDarkMode
-                    ? "bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700"
-                    : "bg-gradient-to-br from-white to-gray-50 border-gray-200"
-                } shadow-xl`}
-              >
-                <CardContent className="p-8 md:p-12">
-                  <div className="text-center space-y-6">
-                    <Quote
-                      className={`h-12 w-12 ${isDarkMode ? "text-amber-400" : "text-amber-600"} mx-auto opacity-50`}
-                    />
-                    <blockquote
-                      className={`text-xl md:text-2xl font-medium leading-relaxed ${
-                        isDarkMode ? "text-gray-100" : "text-gray-800"
-                      }`}
-                    >
-                      "{testimonials[currentTestimonial]?.content}"
-                    </blockquote>
-                    <div className="flex items-center justify-center space-x-4">
-                      <Avatar className="h-16 w-16">
-                        <AvatarImage
-                          src={testimonials[currentTestimonial]?.avatar || "/placeholder.svg"}
-                          alt={testimonials[currentTestimonial]?.name}
-                        />
-                        <AvatarFallback
-                          className={`${
-                            isDarkMode
-                              ? "bg-gradient-to-br from-amber-500 to-orange-500"
-                              : "bg-gradient-to-br from-amber-500 to-orange-600"
-                          } text-white text-lg font-semibold`}
-                        >
-                          {testimonials[currentTestimonial]?.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="text-left">
-                        <div className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                          {testimonials[currentTestimonial]?.name}
-                        </div>
-                        <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                          {testimonials[currentTestimonial]?.role}
-                        </div>
-                        <div className="flex items-center mt-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < (testimonials[currentTestimonial]?.rating || 0)
-                                  ? isDarkMode
-                                    ? "text-amber-400 fill-amber-400"
-                                    : "text-amber-500 fill-amber-500"
-                                  : isDarkMode
-                                    ? "text-gray-600"
-                                    : "text-gray-300"
-                              }`}
-                            />
-                          ))}
-                        </div>
+          <div className="relative max-w-4xl mx-auto">
+            <Card
+              className={`${
+                isDarkMode
+                  ? "bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700"
+                  : "bg-gradient-to-br from-white to-gray-50 border-gray-200"
+              } shadow-xl`}
+            >
+              <CardContent className="p-8 md:p-12">
+                <div className="text-center space-y-6">
+                  <Quote
+                    className={`h-12 w-12 ${isDarkMode ? "text-amber-400" : "text-amber-600"} mx-auto opacity-50`}
+                  />
+                  <blockquote
+                    className={`text-xl md:text-2xl font-medium leading-relaxed ${
+                      isDarkMode ? "text-gray-100" : "text-gray-800"
+                    }`}
+                  >
+                    "{testimonials[currentTestimonial]?.content}"
+                  </blockquote>
+                  <div className="flex items-center justify-center space-x-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage
+                        src={testimonials[currentTestimonial]?.avatar || "/placeholder.svg"}
+                        alt={testimonials[currentTestimonial]?.name}
+                      />
+                      <AvatarFallback
+                        className={`${
+                          isDarkMode
+                            ? "bg-gradient-to-br from-amber-500 to-orange-500"
+                            : "bg-gradient-to-br from-amber-500 to-orange-600"
+                        } text-white text-lg font-semibold`}
+                      >
+                        {testimonials[currentTestimonial]?.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-left">
+                      <div className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                        {testimonials[currentTestimonial]?.name}
+                      </div>
+                      <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                        {testimonials[currentTestimonial]?.role}
+                      </div>
+                      <div className="flex items-center mt-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < (testimonials[currentTestimonial]?.rating || 0)
+                                ? isDarkMode
+                                  ? "text-amber-400 fill-amber-400"
+                                  : "text-amber-500 fill-amber-500"
+                                : isDarkMode
+                                  ? "text-gray-600"
+                                  : "text-gray-300"
+                            }`}
+                          />
+                        ))}
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Testimonial Controls */}
-              <div className="flex items-center justify-center space-x-4 mt-8">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() =>
-                    setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)
-                  }
-                  className={`${
-                    isDarkMode
-                      ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <SkipBack className="h-4 w-4" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setIsTestimonialPlaying(!isTestimonialPlaying)}
-                  className={`${
-                    isDarkMode
-                      ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  {isTestimonialPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)}
-                  className={`${
-                    isDarkMode
-                      ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <SkipForward className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Testimonial Indicators */}
-              <div className="flex items-center justify-center space-x-2 mt-6">
-                {testimonials.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentTestimonial(index)}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      index === currentTestimonial
-                        ? isDarkMode
-                          ? "bg-amber-400 w-8"
-                          : "bg-amber-600 w-8"
-                        : isDarkMode
-                          ? "bg-gray-600 hover:bg-gray-500"
-                          : "bg-gray-300 hover:bg-gray-400"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* No Testimonials */}
-          {!testimonialsLoading && testimonials.length === 0 && (
-            <div className="text-center py-12">
-              <div
-                className={`w-16 h-16 ${
+            {/* Testimonial Controls */}
+            <div className="flex items-center justify-center space-x-4 mt-8">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+                className={`${
                   isDarkMode
-                    ? "bg-gradient-to-br from-gray-700 to-gray-800"
-                    : "bg-gradient-to-br from-gray-100 to-gray-200"
-                } rounded-full flex items-center justify-center mx-auto mb-4`}
+                    ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
               >
-                <MessageSquare className={`h-8 w-8 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
-              </div>
-              <h3 className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"} mb-2`}>
-                No testimonials yet
-              </h3>
-              <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                Client testimonials will appear here once they're added.
-              </p>
+                <SkipBack className="h-4 w-4" />
+              </Button>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsTestimonialPlaying(!isTestimonialPlaying)}
+                className={`${
+                  isDarkMode
+                    ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                {isTestimonialPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              </Button>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)}
+                className={`${
+                  isDarkMode
+                    ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <SkipForward className="h-4 w-4" />
+              </Button>
             </div>
-          )}
+
+            {/* Testimonial Indicators */}
+            <div className="flex items-center justify-center space-x-2 mt-6">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentTestimonial(index)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    index === currentTestimonial
+                      ? isDarkMode
+                        ? "bg-amber-400 w-8"
+                        : "bg-amber-600 w-8"
+                      : isDarkMode
+                        ? "bg-gray-600 hover:bg-gray-500"
+                        : "bg-gray-300 hover:bg-gray-400"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1678,7 +1664,10 @@ function DarpanInteriorsPortfolioContent() {
           <div className="grid md:grid-cols-4 gap-8">
             {/* Company Info */}
             <div className="space-y-4">
-              <div className="flex items-center space-x-3">
+              <button
+                onClick={() => scrollToSection("home")}
+                className="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer"
+              >
                 <div
                   className={`w-10 h-10 ${
                     isDarkMode
@@ -1693,7 +1682,7 @@ function DarpanInteriorsPortfolioContent() {
                     Darpan Interiors
                   </h3>
                 </div>
-              </div>
+              </button>
               <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-sm`}>
                 Transforming spaces and creating beautiful, functional environments that reflect your unique style and
                 personality.
@@ -1827,11 +1816,9 @@ function DarpanInteriorsPortfolioContent() {
 export default function DarpanInteriorsPortfolio() {
   return (
     <ProjectsProvider>
-      <TestimonialsProvider>
-        <ThemeProvider>
-          <DarpanInteriorsPortfolioContent />
-        </ThemeProvider>
-      </TestimonialsProvider>
+      <ThemeProvider>
+        <DarpanInteriorsPortfolioContent />
+      </ThemeProvider>
     </ProjectsProvider>
   )
 }

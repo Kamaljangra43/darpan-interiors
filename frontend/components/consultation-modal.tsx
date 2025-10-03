@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { useTheme } from "../contexts/theme-context"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { X, Calendar, User, MessageSquare } from "lucide-react"
@@ -25,6 +25,8 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
     type: "success" | "error" | null
     message: string
   }>({ type: null, message: "" })
+
+  const { isDarkMode } = useTheme()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -80,14 +82,27 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div
+        className={`${isDarkMode ? "bg-gray-900 border border-gray-800" : "bg-white border border-gray-200"} rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}
+      >
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+        <div
+          className={`flex justify-between items-center p-6 border-b ${isDarkMode ? "border-gray-800" : "border-gray-200"}`}
+        >
           <div>
-            <h2 className="text-2xl font-light text-gray-900">Book Free Consultation</h2>
-            <p className="text-gray-600 text-sm mt-1">Schedule a complimentary design consultation</p>
+            <h2 className={`text-2xl font-light ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+              Book Free Consultation
+            </h2>
+            <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-sm mt-1`}>
+              Schedule a complimentary design consultation
+            </p>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className={isDarkMode ? "text-gray-400 hover:text-white hover:bg-gray-800" : ""}
+          >
             <X className="h-6 w-6" />
           </Button>
         </div>
@@ -98,8 +113,12 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
             <div
               className={`mb-6 p-4 rounded-lg ${
                 submitStatus.type === "success"
-                  ? "bg-green-50 text-green-800 border border-green-200"
-                  : "bg-red-50 text-red-800 border border-red-200"
+                  ? isDarkMode
+                    ? "bg-green-500/20 text-green-300 border border-green-500/30"
+                    : "bg-green-50 text-green-800 border border-green-200"
+                  : isDarkMode
+                    ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                    : "bg-red-50 text-red-800 border border-red-200"
               }`}
             >
               {submitStatus.message}
@@ -109,44 +128,64 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Personal Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <User className="h-5 w-5 text-amber-600" />
+              <h3
+                className={`text-lg font-medium ${isDarkMode ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}
+              >
+                <User className={`h-5 w-5 ${isDarkMode ? "text-amber-400" : "text-amber-600"}`} />
                 Personal Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                  <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                    Full Name *
+                  </label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
+                      isDarkMode
+                        ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
+                        : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                    }`}
                     placeholder="Your full name"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                  <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                    Email Address *
+                  </label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
+                      isDarkMode
+                        ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
+                        : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                    }`}
                     placeholder="your@email.com"
                     required
                   />
                 </div>
               </div>
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                  Phone Number
+                </label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
+                    isDarkMode
+                      ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                  }`}
                   placeholder="(555) 123-4567"
                 />
               </div>
@@ -154,29 +193,43 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
 
             {/* Consultation Preferences */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-amber-600" />
+              <h3
+                className={`text-lg font-medium ${isDarkMode ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}
+              >
+                <Calendar className={`h-5 w-5 ${isDarkMode ? "text-amber-400" : "text-amber-600"}`} />
                 Consultation Preferences
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Date</label>
+                  <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                    Preferred Date
+                  </label>
                   <input
                     type="date"
                     name="preferredDate"
                     value={formData.preferredDate}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
+                      isDarkMode
+                        ? "bg-gray-800 border-gray-700 text-gray-100"
+                        : "bg-white border-gray-300 text-gray-900"
+                    }`}
                     min={new Date().toISOString().split("T")[0]}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Time</label>
+                  <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                    Preferred Time
+                  </label>
                   <select
                     name="preferredTime"
                     value={formData.preferredTime}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
+                      isDarkMode
+                        ? "bg-gray-800 border-gray-700 text-gray-100"
+                        : "bg-white border-gray-300 text-gray-900"
+                    }`}
                   >
                     <option value="">Select time</option>
                     <option value="9:00 AM">9:00 AM</option>
@@ -194,17 +247,23 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
 
             {/* Project Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-amber-600" />
+              <h3
+                className={`text-lg font-medium ${isDarkMode ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}
+              >
+                <MessageSquare className={`h-5 w-5 ${isDarkMode ? "text-amber-400" : "text-amber-600"}`} />
                 Project Information
               </h3>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Project Type</label>
+                <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                  Project Type
+                </label>
                 <select
                   name="projectType"
                   value={formData.projectType}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
+                    isDarkMode ? "bg-gray-800 border-gray-700 text-gray-100" : "bg-white border-gray-300 text-gray-900"
+                  }`}
                 >
                   <option value="">Select project type</option>
                   <option value="residential">Residential Design</option>
@@ -216,13 +275,19 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tell us about your project</label>
+                <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                  Tell us about your project
+                </label>
                 <textarea
                   name="message"
                   value={formData.message}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none ${
+                    isDarkMode
+                      ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                  }`}
                   placeholder="Describe your vision, timeline, budget range, and any specific requirements..."
                 />
               </div>
@@ -230,19 +295,31 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
 
             {/* Submit Button */}
             <div className="flex gap-4">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={isSubmitting}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className={`flex-1 ${isDarkMode ? "border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600" : "border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400"}`}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-700" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className={`flex-1 ${isDarkMode ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600" : "bg-amber-600 hover:bg-amber-700"} text-white`}
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? "Booking..." : "Book Consultation"}
               </Button>
             </div>
           </form>
 
           {/* Additional Info */}
-          <div className="mt-6 p-4 bg-amber-50 rounded-lg">
-            <h4 className="font-medium text-amber-900 mb-2">What to Expect:</h4>
-            <ul className="text-sm text-amber-800 space-y-1">
+          <div
+            className={`mt-6 p-4 rounded-lg ${isDarkMode ? "bg-amber-500/10 border border-amber-500/20" : "bg-amber-50"}`}
+          >
+            <h4 className={`font-medium ${isDarkMode ? "text-amber-400" : "text-amber-900"} mb-2`}>What to Expect:</h4>
+            <ul className={`text-sm ${isDarkMode ? "text-amber-300/90" : "text-amber-800"} space-y-1`}>
               <li>• 60-minute complimentary consultation</li>
               <li>• Discussion of your vision and requirements</li>
               <li>• Initial design concepts and recommendations</li>
