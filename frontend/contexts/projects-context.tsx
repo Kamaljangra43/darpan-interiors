@@ -105,7 +105,51 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
   ) => {
     try {
       setLoading(true);
-      const updated = await projectService.updateProject(id, updatedProject);
+
+      // If there are new images (base64), upload them first
+      let imageUrls = updatedProject.images || [];
+      if (
+        updatedProject.images &&
+        updatedProject.images.some((img) => img.startsWith("data:"))
+      ) {
+        const newImages = updatedProject.images.filter((img) =>
+          img.startsWith("data:")
+        );
+        const existingImages = updatedProject.images.filter(
+          (img) => !img.startsWith("data:")
+        );
+
+        // Upload new base64 images to Cloudinary
+        const uploadedImages = await Promise.all(
+          newImages.map(async (imageBase64) => {
+            const result = await imageService.uploadImage({
+              image: imageBase64,
+              category: "projects",
+              section: updatedProject.category || "project",
+            });
+            return result.url;
+          })
+        );
+
+        imageUrls = [...existingImages, ...uploadedImages];
+      }
+
+      // Prepare update data with ALL fields
+      const updateData = {
+        title: updatedProject.title,
+        category: updatedProject.category,
+        description: updatedProject.description,
+        details: updatedProject.details || "",
+        client: updatedProject.client || "",
+        year: updatedProject.year || "",
+        location: updatedProject.location || "",
+        duration: updatedProject.duration || "",
+        image: imageUrls.length > 0 ? imageUrls[0] : updatedProject.image,
+        images: imageUrls.length > 0 ? imageUrls : updatedProject.images,
+        featured: updatedProject.featured,
+      };
+
+      const updated = await projectService.updateProject(id, updateData);
 
       // Normalize the response
       const normalizedProject = {

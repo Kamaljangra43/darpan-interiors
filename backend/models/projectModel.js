@@ -14,12 +14,13 @@ const projectSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    images: [
-      {
-        url: String,
-        public_id: String,
-      },
-    ],
+    details: String,
+    client: String,
+    year: String,
+    duration: String,
+    location: String,
+    image: String, // Main image URL
+    images: [String], // Simple array of image URLs (NOT objects)
     featured: {
       type: Boolean,
       default: false,
@@ -31,5 +32,4 @@ const projectSchema = new mongoose.Schema(
 );
 
 const Project = mongoose.model("Project", projectSchema);
-
 module.exports = Project;

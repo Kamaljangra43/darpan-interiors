@@ -2,14 +2,19 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const imageRoutes = require("./routes/imageRoutes");
-const testimonialRoutes = require("./routes/testimonialRoutes");
+
 // Load environment variables
 dotenv.config();
 
 // Import routes
 const authRoutes = require("./routes/authRoutes");
 const projectRoutes = require("./routes/projectRoutes");
+const imageRoutes = require("./routes/imageRoutes");
+const testimonialRoutes = require("./routes/testimonialRoutes");
+const statsRoutes = require("./routes/statsRoutes");
+const aboutRoutes = require("./routes/aboutRoutes");
+const serviceRoutes = require("./routes/serviceRoutes");
+const siteSettingsRoutes = require("./routes/siteSettingsRoutes");
 
 const app = express();
 
@@ -36,6 +41,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/images", imageRoutes);
 app.use("/api/testimonials", testimonialRoutes);
+app.use("/api/stats", statsRoutes);
+app.use("/api/about", aboutRoutes);
+app.use("/api/services", serviceRoutes);
+app.use("/api/site-settings", siteSettingsRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

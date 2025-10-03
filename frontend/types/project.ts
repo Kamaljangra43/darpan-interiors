@@ -7,10 +7,10 @@ export interface Project {
   details?: string;
   client?: string;
   year?: string;
-  duration?: string; // Added missing duration field
+  duration?: string;
   location?: string;
   image: string;
-  images: string[]; // Changed to simple string array for image URLs
+  images: string[];
   featured?: boolean;
   createdAt?: string;
   updatedAt?: string;
