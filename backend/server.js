@@ -34,6 +34,8 @@ mongoose
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/images", imageRoutes);
+app.use("/api/testimonials", testimonialRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -45,8 +47,6 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Something went wrong!" });
 });
-app.use("/api/images", imageRoutes);
-app.use("/api/testimonials", testimonialRoutes);
 
 const PORT = process.env.PORT || 5000;
 

@@ -1,35 +1,70 @@
 const mongoose = require("mongoose");
+const dotenv = require("dotenv");
 const User = require("./models/userModel");
-require("dotenv").config();
 
-const createAdminUser = async () => {
+// Load environment variables
+dotenv.config();
+
+console.log("🔍 Checking environment variables...");
+console.log("MONGODB_URI exists:", !!process.env.MONGODB_URI);
+console.log("MONGODB_URI length:", process.env.MONGODB_URI?.length || 0);
+
+if (!process.env.MONGODB_URI) {
+  console.error("\n❌ ERROR: MONGODB_URI is not defined in .env file!");
+  console.error("Please create a .env file in the backend directory with:");
+  console.error("MONGODB_URI=your-mongodb-connection-string");
+  process.exit(1);
+}
+
+const createAdmin = async () => {
   try {
-    await mongoose.connect(
-      process.env.MONGODB_URI || "mongodb://localhost:27017/darpan-interiors"
-    );
+    console.log("\n🔌 Connecting to MongoDB...");
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log("✅ Connected to MongoDB successfully!\n");
 
-    // Check if admin already exists
-    const existingAdmin = await User.findOne({
-      username: "admin@darpaninteriors.com",
-    });
+    // IMPORTANT: Replace with your Google email
+    const adminEmail = "kamalsinghjangra106@gmail.com";
+
+    console.log(`🔍 Looking for user: ${adminEmail}`);
+
+    const existingAdmin = await User.findOne({ email: adminEmail });
 
     if (existingAdmin) {
-      console.log("Admin user already exists");
-      process.exit(0);
+      existingAdmin.isAdmin = true;
+      await existingAdmin.save();
+      console.log("✅ Admin user updated:", adminEmail);
+      console.log("   User ID:", existingAdmin._id);
+      console.log("   Is Admin:", existingAdmin.isAdmin);
+    } else {
+      const newAdmin = await User.create({
+        name: "Kamal Jangra",
+        email: adminEmail,
+        isAdmin: true,
+      });
+      console.log("✅ Admin user created:", adminEmail);
+      console.log("   User ID:", newAdmin._id);
+      console.log("   Is Admin:", newAdmin.isAdmin);
     }
 
-    // Create admin user
-    const admin = await User.create({
-      username: "admin@darpaninteriors.com",
-      password: "admin123", // This will be hashed by the pre-save middleware
-    });
+    // Verify
+    const verifyUser = await User.findOne({ email: adminEmail });
+    console.log("\n🔍 Verification:");
+    console.log("   Email:", verifyUser.email);
+    console.log("   Name:", verifyUser.name);
+    console.log("   Is Admin:", verifyUser.isAdmin);
 
-    console.log("Admin user created successfully:", admin.username);
+    console.log(
+      "\n🎉 Success! You can now login with this Google account as admin!"
+    );
+
+    await mongoose.connection.close();
+    console.log("📪 MongoDB connection closed");
     process.exit(0);
   } catch (error) {
-    console.error("Error creating admin user:", error);
+    console.error("\n❌ Error:", error.message);
+    console.error("\nFull error:", error);
     process.exit(1);
   }
 };
 
-createAdminUser();
+createAdmin();
