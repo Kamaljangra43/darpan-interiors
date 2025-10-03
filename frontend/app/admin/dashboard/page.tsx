@@ -72,12 +72,14 @@ export default function AdminDashboardPage() {
 
   // Testimonial states
   const [showAddTestimonial, setShowAddTestimonial] = useState(false);
+  // Fix the initial state - ensure rating is always a number
   const [newTestimonial, setNewTestimonial] = useState({
     name: "",
-    role: "",
+    occupation: "",
     projectType: "",
     content: "",
-    rating: 5,
+    rating: 5.0, // Make sure it's a number, not undefined
+    image: "",
   });
 
   // Stats states
@@ -275,23 +277,38 @@ export default function AdminDashboardPage() {
   const handleAddTestimonial = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await addTestimonial({
-        name: newTestimonial.name,
-        content: newTestimonial.content,
-        rating: newTestimonial.rating,
-      } as any);
+      console.log("📤 Submitting testimonial:", newTestimonial);
+      await addTestimonial(newTestimonial as any);
+      console.log("✅ Testimonial submitted successfully!");
       setNewTestimonial({
         name: "",
-        role: "",
+        occupation: "",
         projectType: "",
         content: "",
         rating: 5,
+        image: "",
       });
       setShowAddTestimonial(false);
       alert("Testimonial added successfully!");
     } catch (error) {
-      console.error("Error adding testimonial:", error);
-      alert("Failed to add testimonial. Please try again.");
+      console.error("❌ Error adding testimonial:", error);
+      alert("Failed to add testimonial. Check console for details.");
+    }
+  };
+
+  const handleTestimonialImageUpload = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setNewTestimonial((prev) => ({
+          ...prev,
+          image: e.target?.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -878,42 +895,68 @@ export default function AdminDashboardPage() {
                 {testimonials.map((testimonial) => (
                   <div
                     key={testimonial._id}
-                    className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                    className="testimonial-card bg-white p-6 rounded-lg shadow-lg text-center max-w-md mx-auto relative"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg text-gray-900">
-                          {testimonial.name}
-                        </h3>
-                        <div className="flex items-center gap-1 mt-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < testimonial.rating
-                                  ? "fill-amber-400 text-amber-400"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <Button
-                        onClick={() => {
-                          if (confirm("Delete this testimonial?")) {
-                            deleteTestimonial(testimonial._id || "");
+                    {/* Delete Button */}
+                    <Button
+                      onClick={() => {
+                        if (confirm("Delete this testimonial?")) {
+                          deleteTestimonial(testimonial._id || "");
+                        }
+                      }}
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2 right-2 text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+
+                    {/* Profile Picture */}
+                    {testimonial.image ? (
+                      <div className="mb-4">
+                        <img
+                          src={
+                            typeof testimonial.image === "string"
+                              ? testimonial.image
+                              : testimonial.image.url
                           }
-                        }}
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                          alt={testimonial.name}
+                          className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover object-center border-4 border-gray-100 shadow-md mx-auto"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+                        {testimonial.name.charAt(0)}
+                      </div>
+                    )}
+
+                    {/* Testimonial Content */}
+                    <div className="mb-4">
+                      <div className="text-4xl text-amber-500 mb-2">"</div>
+                      <p className="text-gray-700 italic leading-relaxed">
+                        {testimonial.content}
+                      </p>
                     </div>
-                    <p className="text-gray-600 text-sm italic line-clamp-4">
-                      "{testimonial.content}"
-                    </p>
+
+                    {/* Client Info */}
+                    <div className="mb-3">
+                      <p className="font-bold text-lg text-gray-900">
+                        {testimonial.name}
+                      </p>
+                      <p className="text-gray-600 text-sm">
+                        {testimonial.occupation}
+                      </p>
+                      {testimonial.projectType && (
+                        <p className="text-amber-600 text-sm mt-1">
+                          {testimonial.projectType}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Rating */}
+                    <div className="flex justify-center">
+                      <StarRating rating={testimonial.rating} />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -922,50 +965,82 @@ export default function AdminDashboardPage() {
             {showAddTestimonial && (
               <Modal
                 onClose={() => setShowAddTestimonial(false)}
-                title="Add Testimonial"
+                title="Add New Testimonial"
               >
                 <form onSubmit={handleAddTestimonial} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="Client Name *"
+                      value={newTestimonial.name}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setNewTestimonial((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                      placeholder="John Doe"
+                      required
+                    />
+                    <Input
+                      label="Occupation *"
+                      value={newTestimonial.occupation}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setNewTestimonial((prev) => ({
+                          ...prev,
+                          occupation: e.target.value,
+                        }))
+                      }
+                      placeholder="Business Owner"
+                      required
+                    />
+                  </div>
+
                   <Input
-                    label="Client Name *"
-                    value={newTestimonial.name}
+                    label="Project Type"
+                    value={newTestimonial.projectType}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       setNewTestimonial((prev) => ({
                         ...prev,
-                        name: e.target.value,
+                        projectType: e.target.value,
                       }))
                     }
-                    placeholder="Sarah Mitchell"
-                    required
+                    placeholder="e.g., Whole Home Renovation"
                   />
 
                   <div>
                     <label className="block text-sm font-medium mb-2">
-                      Rating *
+                      Rating * (0.5 increments)
                     </label>
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map((rating) => (
-                        <button
-                          key={rating}
-                          type="button"
-                          onClick={() =>
-                            setNewTestimonial((prev) => ({ ...prev, rating }))
-                          }
-                          className="focus:outline-none"
-                        >
-                          <Star
-                            className={`w-8 h-8 ${
-                              rating <= newTestimonial.rating
-                                ? "fill-amber-400 text-amber-400"
-                                : "text-gray-300"
-                            } cursor-pointer hover:scale-110 transition-transform`}
-                          />
-                        </button>
-                      ))}
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="number"
+                        min="0"
+                        max="5"
+                        step="0.5"
+                        value={newTestimonial.rating.toString()} // Convert to string to avoid NaN
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          setNewTestimonial((prev) => ({
+                            ...prev,
+                            rating: parseFloat(e.target.value) || 0, // Fallback to 0 if parsing fails
+                          }))
+                        }
+                        className="w-24 px-3 py-2 border rounded-md"
+                        required
+                      />
+                      <div className="flex gap-1">
+                        <StarRating
+                          rating={newTestimonial.rating}
+                          showNumber={false}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600">
+                        {newTestimonial.rating} stars
+                      </span>
                     </div>
                   </div>
 
                   <TextArea
-                    label="Content *"
+                    label="Testimonial Content *"
                     value={newTestimonial.content}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                       setNewTestimonial((prev) => ({
@@ -973,10 +1048,31 @@ export default function AdminDashboardPage() {
                         content: e.target.value,
                       }))
                     }
-                    placeholder="Client testimonial..."
+                    placeholder="Enter the client's testimonial..."
                     rows={5}
                     required
                   />
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Profile Picture (Optional)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleTestimonialImageUpload}
+                      className="w-full border rounded p-2"
+                    />
+                    {newTestimonial.image && (
+                      <div className="mt-2">
+                        <img
+                          src={newTestimonial.image}
+                          alt="Preview"
+                          className="w-24 h-24 rounded-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
 
                   <div className="flex gap-4 pt-4">
                     <Button
@@ -989,7 +1085,7 @@ export default function AdminDashboardPage() {
                     </Button>
                     <Button
                       type="submit"
-                      className="bg-green-600 hover:bg-green-700 flex-1"
+                      className="bg-amber-600 hover:bg-amber-700 flex-1"
                     >
                       Add Testimonial
                     </Button>
@@ -1447,6 +1543,54 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// Helper Functions
+// Star Rating Component - CSS-based with proper half stars
+function StarRating({
+  rating,
+  showNumber = true,
+}: {
+  rating: number;
+  showNumber?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <div className="flex items-center">
+        {[1, 2, 3, 4, 5].map((star) => {
+          const filled = rating >= star;
+          const halfFilled = rating >= star - 0.5 && rating < star;
+
+          return (
+            <div key={star} className="relative text-lg">
+              {/* Background star */}
+              <span className="text-gray-300">★</span>
+
+              {/* Foreground star */}
+              {filled && (
+                <span className="absolute top-0 left-0 text-yellow-400">★</span>
+              )}
+
+              {/* Half star */}
+              {halfFilled && (
+                <span
+                  className="absolute top-0 left-0 text-yellow-400 overflow-hidden"
+                  style={{ width: "50%" }}
+                >
+                  ★
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {showNumber && (
+        <span className="ml-2 text-sm text-gray-600 font-medium">
+          {rating.toFixed(1)}
+        </span>
+      )}
     </div>
   );
 }

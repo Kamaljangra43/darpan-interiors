@@ -90,3 +90,39 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Testimonial Avatar Styles */
+.testimonial-avatar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.testimonial-avatar-container img {
+  display: block;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.testimonial-avatar-container img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Ensure circular images stay circular on all devices */
+@media (max-width: 767px) {
+  .testimonial-avatar-container img {
+    width: 80px !important;
+    height: 80px !important;
+    min-width: 80px;
+    min-height: 80px;
+  }
+}
+
+@media (min-width: 768px) {
+  .testimonial-avatar-container img {
+    width: 96px !important;
+    height: 96px !important;
+    min-width: 96px;
+    min-height: 96px;
+  }
+}

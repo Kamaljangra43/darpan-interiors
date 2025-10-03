@@ -2,18 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { testimonialService } from "@/lib/services/testimonialService";
-
-interface Testimonial {
-  _id?: string;
-  name: string;
-  content: string;
-  rating: number;
-  image?: {
-    url: string;
-    public_id: string;
-  };
-  featured?: boolean;
-}
+import type { Testimonial } from "@/types/project";
 
 interface TestimonialsContextType {
   testimonials: Testimonial[];
@@ -48,9 +37,12 @@ export function TestimonialsProvider({
     try {
       setLoading(true);
       const data = await testimonialService.getAllTestimonials();
+      console.log("✅ Testimonials fetched:", data);
       setTestimonials(data);
+      setError(null);
     } catch (err: any) {
       setError(err.message);
+      console.error("❌ Error fetching testimonials:", err);
     } finally {
       setLoading(false);
     }
@@ -59,12 +51,16 @@ export function TestimonialsProvider({
   const addTestimonial = async (testimonial: Omit<Testimonial, "_id">) => {
     try {
       setLoading(true);
+      console.log("📤 Adding testimonial:", testimonial);
       const newTestimonial = await testimonialService.createTestimonial(
         testimonial
       );
+      console.log("✅ Testimonial added:", newTestimonial);
       setTestimonials((prev) => [newTestimonial, ...prev]);
+      setError(null);
     } catch (err: any) {
       setError(err.message);
+      console.error("❌ Error adding testimonial:", err);
       throw err;
     } finally {
       setLoading(false);
@@ -84,6 +80,7 @@ export function TestimonialsProvider({
       setTestimonials((prev) =>
         prev.map((t) => (t._id === id ? updatedTestimonial : t))
       );
+      setError(null);
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -97,6 +94,7 @@ export function TestimonialsProvider({
       setLoading(true);
       await testimonialService.deleteTestimonial(id);
       setTestimonials((prev) => prev.filter((t) => t._id !== id));
+      setError(null);
     } catch (err: any) {
       setError(err.message);
       throw err;

@@ -51,6 +51,10 @@ import {
 } from "lucide-react";
 import { useTheme, ThemeProvider } from "./contexts/theme-context";
 import { ProjectsProvider, useProjects } from "./contexts/projects-context";
+import {
+  TestimonialsProvider,
+  useTestimonials,
+} from "./contexts/testimonials-context";
 import SettingsModal from "./components/settings-modal";
 import ConsultationModal from "./components/consultation-modal";
 import ProjectDetailModal from "./components/project-detail-modal";
@@ -67,6 +71,7 @@ const getImageUrl = (
 function DarpanInteriorsPortfolioContent() {
   const { isDarkMode } = useTheme();
   const { projects, loading: projectsLoading } = useProjects();
+  const { testimonials, loading: testimonialsLoading } = useTestimonials();
 
   const [activeSection, setActiveSection] = useState("home");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -98,33 +103,7 @@ function DarpanInteriorsPortfolioContent() {
     "/cozy-living-room.png",
   ];
 
-  // Testimonials data
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      role: "Homeowner",
-      content:
-        "Working with Darpan Interiors was an absolute pleasure. They transformed our house into a home that perfectly reflects our style and personality.",
-      avatar: "/placeholder.svg?height=100&width=100",
-      rating: 5,
-    },
-    {
-      name: "Michael Chen",
-      role: "Business Owner",
-      content:
-        "The team's attention to detail and creative vision exceeded our expectations. Our office space now inspires productivity and creativity.",
-      avatar: "/placeholder.svg?height=100&width=100",
-      rating: 5,
-    },
-    {
-      name: "Emily Rodriguez",
-      role: "Homeowner",
-      content:
-        "From the initial consultation to the final reveal, everything was seamless. The results are stunning and we couldn't be happier!",
-      avatar: "/placeholder.svg?height=100&width=100",
-      rating: 5,
-    },
-  ];
+  // Testimonials are now loaded from context
 
   // Auto-rotate testimonials
   useEffect(() => {
@@ -1543,163 +1522,216 @@ function DarpanInteriorsPortfolioContent() {
             </p>
           </div>
 
+          {/* Loading State */}
+          {testimonialsLoading && (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto"></div>
+              <p
+                className={`mt-4 ${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Loading testimonials...
+              </p>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!testimonialsLoading && testimonials.length === 0 && (
+            <div className="text-center py-12">
+              <Quote
+                className={`h-16 w-16 ${
+                  isDarkMode ? "text-gray-600" : "text-gray-400"
+                } mx-auto mb-4 opacity-50`}
+              />
+              <p
+                className={`text-lg ${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                No testimonials available yet.
+              </p>
+            </div>
+          )}
+
           {/* Testimonials Carousel */}
-          <div className="relative max-w-4xl mx-auto">
-            <Card
-              className={`${
-                isDarkMode
-                  ? "bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700"
-                  : "bg-gradient-to-br from-white to-gray-50 border-gray-200"
-              } shadow-xl`}
-            >
-              <CardContent className="p-8 md:p-12">
-                <div className="text-center space-y-6">
-                  <Quote
-                    className={`h-12 w-12 ${
-                      isDarkMode ? "text-amber-400" : "text-amber-600"
-                    } mx-auto opacity-50`}
-                  />
-                  <blockquote
-                    className={`text-xl md:text-2xl font-medium leading-relaxed ${
-                      isDarkMode ? "text-gray-100" : "text-gray-800"
-                    }`}
-                  >
-                    "{testimonials[currentTestimonial]?.content}"
-                  </blockquote>
-                  <div className="flex items-center justify-center space-x-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage
-                        src={
-                          testimonials[currentTestimonial]?.avatar ||
-                          "/placeholder.svg"
-                        }
-                        alt={testimonials[currentTestimonial]?.name}
-                      />
-                      <AvatarFallback
-                        className={`${
-                          isDarkMode
-                            ? "bg-gradient-to-br from-amber-500 to-orange-500"
-                            : "bg-gradient-to-br from-amber-500 to-orange-600"
-                        } text-white text-lg font-semibold`}
-                      >
-                        {testimonials[currentTestimonial]?.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="text-left">
-                      <div
-                        className={`font-semibold ${
-                          isDarkMode ? "text-white" : "text-gray-900"
-                        }`}
-                      >
-                        {testimonials[currentTestimonial]?.name}
-                      </div>
-                      <div
-                        className={`text-sm ${
-                          isDarkMode ? "text-gray-400" : "text-gray-600"
-                        }`}
-                      >
-                        {testimonials[currentTestimonial]?.role}
-                      </div>
-                      <div className="flex items-center mt-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i <
-                              (testimonials[currentTestimonial]?.rating || 0)
-                                ? isDarkMode
-                                  ? "text-amber-400 fill-amber-400"
-                                  : "text-amber-500 fill-amber-500"
-                                : isDarkMode
-                                ? "text-gray-600"
-                                : "text-gray-300"
+          {!testimonialsLoading && testimonials.length > 0 && (
+            <div className="relative max-w-4xl mx-auto">
+              <Card
+                className={`${
+                  isDarkMode
+                    ? "bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700"
+                    : "bg-gradient-to-br from-white to-gray-50 border-gray-200"
+                } shadow-xl`}
+              >
+                <CardContent className="p-8 md:p-12">
+                  <div className="text-center space-y-6">
+                    <Quote
+                      className={`h-12 w-12 ${
+                        isDarkMode ? "text-amber-400" : "text-amber-600"
+                      } mx-auto opacity-50`}
+                    />
+                    <blockquote
+                      className={`text-xl md:text-2xl font-medium leading-relaxed ${
+                        isDarkMode ? "text-gray-100" : "text-gray-800"
+                      }`}
+                    >
+                      "{testimonials[currentTestimonial]?.content}"
+                    </blockquote>
+                    <div className="flex items-center justify-center space-x-4">
+                      {/* Testimonial Avatar */}
+                      {testimonials[currentTestimonial]?.image && (
+                        <div className="testimonial-avatar-container">
+                          <img
+                            src={
+                              typeof testimonials[currentTestimonial]?.image ===
+                              "string"
+                                ? testimonials[currentTestimonial]?.image
+                                : testimonials[currentTestimonial]?.image?.url
+                            }
+                            alt={testimonials[currentTestimonial]?.name}
+                            className={`w-20 h-20 md:w-24 md:h-24 rounded-full object-cover object-center shadow-lg ${
+                              isDarkMode
+                                ? "border-4 border-gray-700"
+                                : "border-4 border-white"
                             }`}
+                            style={{
+                              minWidth: "80px",
+                              minHeight: "80px",
+                            }}
                           />
-                        ))}
+                        </div>
+                      )}
+                      {/* Fallback Avatar if no image */}
+                      {!testimonials[currentTestimonial]?.image && (
+                        <Avatar className="h-20 w-20 md:h-24 md:w-24">
+                          <AvatarFallback
+                            className={`${
+                              isDarkMode
+                                ? "bg-gradient-to-br from-amber-500 to-orange-500"
+                                : "bg-gradient-to-br from-amber-500 to-orange-600"
+                            } text-white text-2xl font-semibold`}
+                          >
+                            {testimonials[currentTestimonial]?.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div className="text-left">
+                        <div
+                          className={`font-semibold ${
+                            isDarkMode ? "text-white" : "text-gray-900"
+                          }`}
+                        >
+                          {testimonials[currentTestimonial]?.name}
+                        </div>
+                        <div
+                          className={`text-sm ${
+                            isDarkMode ? "text-gray-400" : "text-gray-600"
+                          }`}
+                        >
+                          {testimonials[currentTestimonial]?.occupation}
+                        </div>
+                        {testimonials[currentTestimonial]?.projectType && (
+                          <div
+                            className={`text-xs ${
+                              isDarkMode ? "text-gray-500" : "text-gray-500"
+                            }`}
+                          >
+                            {testimonials[currentTestimonial]?.projectType}
+                          </div>
+                        )}
+                        <div className="flex justify-center mb-2 mt-1">
+                          <StarRating
+                            rating={
+                              testimonials[currentTestimonial]?.rating || 0
+                            }
+                            showNumber={true}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* Testimonial Controls */}
-            <div className="flex items-center justify-center space-x-4 mt-8">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() =>
-                  setCurrentTestimonial(
-                    (prev) =>
-                      (prev - 1 + testimonials.length) % testimonials.length
-                  )
-                }
-                className={`${
-                  isDarkMode
-                    ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <SkipBack className="h-4 w-4" />
-              </Button>
-
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setIsTestimonialPlaying(!isTestimonialPlaying)}
-                className={`${
-                  isDarkMode
-                    ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                {isTestimonialPlaying ? (
-                  <Pause className="h-4 w-4" />
-                ) : (
-                  <Play className="h-4 w-4" />
-                )}
-              </Button>
-
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() =>
-                  setCurrentTestimonial(
-                    (prev) => (prev + 1) % testimonials.length
-                  )
-                }
-                className={`${
-                  isDarkMode
-                    ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <SkipForward className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Testimonial Indicators */}
-            <div className="flex items-center justify-center space-x-2 mt-6">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentTestimonial(index)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    index === currentTestimonial
-                      ? isDarkMode
-                        ? "bg-amber-400 w-8"
-                        : "bg-amber-600 w-8"
-                      : isDarkMode
-                      ? "bg-gray-600 hover:bg-gray-500"
-                      : "bg-gray-300 hover:bg-gray-400"
+              {/* Testimonial Controls */}
+              <div className="flex items-center justify-center space-x-4 mt-8">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    setCurrentTestimonial(
+                      (prev) =>
+                        (prev - 1 + testimonials.length) % testimonials.length
+                    )
+                  }
+                  className={`${
+                    isDarkMode
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
                   }`}
-                />
-              ))}
+                >
+                  <SkipBack className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsTestimonialPlaying(!isTestimonialPlaying)}
+                  className={`${
+                    isDarkMode
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  {isTestimonialPlaying ? (
+                    <Pause className="h-4 w-4" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    setCurrentTestimonial(
+                      (prev) => (prev + 1) % testimonials.length
+                    )
+                  }
+                  className={`${
+                    isDarkMode
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <SkipForward className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Testimonial Indicators */}
+              <div className="flex items-center justify-center space-x-2 mt-6">
+                {testimonials.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentTestimonial(index)}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      index === currentTestimonial
+                        ? isDarkMode
+                          ? "bg-amber-400 w-8"
+                          : "bg-amber-600 w-8"
+                        : isDarkMode
+                        ? "bg-gray-600 hover:bg-gray-500"
+                        : "bg-gray-300 hover:bg-gray-400"
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -2335,12 +2367,61 @@ function DarpanInteriorsPortfolioContent() {
   );
 }
 
+// Star Rating Component - CSS-based with proper half stars
+function StarRating({
+  rating,
+  showNumber = true,
+}: {
+  rating: number;
+  showNumber?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <div className="flex items-center">
+        {[1, 2, 3, 4, 5].map((star) => {
+          const filled = rating >= star;
+          const halfFilled = rating >= star - 0.5 && rating < star;
+
+          return (
+            <div key={star} className="relative text-lg">
+              {/* Background star */}
+              <span className="text-gray-300">★</span>
+
+              {/* Foreground star */}
+              {filled && (
+                <span className="absolute top-0 left-0 text-yellow-400">★</span>
+              )}
+
+              {/* Half star */}
+              {halfFilled && (
+                <span
+                  className="absolute top-0 left-0 text-yellow-400 overflow-hidden"
+                  style={{ width: "50%" }}
+                >
+                  ★
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {showNumber && (
+        <span className="ml-2 text-sm text-gray-600 font-medium">
+          {rating.toFixed(1)}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function DarpanInteriorsPortfolio() {
   return (
     <ProjectsProvider>
-      <ThemeProvider>
-        <DarpanInteriorsPortfolioContent />
-      </ThemeProvider>
+      <TestimonialsProvider>
+        <ThemeProvider>
+          <DarpanInteriorsPortfolioContent />
+        </ThemeProvider>
+      </TestimonialsProvider>
     </ProjectsProvider>
   );
 }

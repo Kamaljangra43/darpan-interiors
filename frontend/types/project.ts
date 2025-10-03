@@ -20,12 +20,16 @@ export interface Testimonial {
   _id?: string;
   id?: string;
   name: string;
+  occupation: string;
   content: string;
-  rating: number;
-  image?: {
-    url: string;
-    public_id: string;
-  };
+  rating: number; // Supports decimals: 4.5, 3.5, etc.
+  image?:
+    | {
+        url: string;
+        public_id: string;
+      }
+    | string; // Can be object or base64 string during upload
+  projectType?: string;
   featured?: boolean;
   createdAt?: string;
   updatedAt?: string;
