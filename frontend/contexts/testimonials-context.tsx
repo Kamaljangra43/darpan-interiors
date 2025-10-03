@@ -1,163 +1,130 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { testimonialService } from "@/lib/services/testimonialService";
 
-export interface Testimonial {
-  id: number
-  name: string
-  role: string
-  content: string
-  rating: number
-  project: string
-  createdAt: Date
+interface Testimonial {
+  _id?: string;
+  name: string;
+  content: string;
+  rating: number;
+  image?: {
+    url: string;
+    public_id: string;
+  };
+  featured?: boolean;
 }
 
 interface TestimonialsContextType {
-  testimonials: Testimonial[]
-  addTestimonial: (testimonial: Omit<Testimonial, "id" | "createdAt">) => void
-  updateTestimonial: (id: number, updatedTestimonial: Partial<Omit<Testimonial, "id" | "createdAt">>) => void
-  deleteTestimonial: (id: number) => void
-  loading: boolean
+  testimonials: Testimonial[];
+  addTestimonial: (testimonial: Omit<Testimonial, "_id">) => Promise<void>;
+  updateTestimonial: (
+    id: string,
+    updated: Partial<Testimonial>
+  ) => Promise<void>;
+  deleteTestimonial: (id: string) => Promise<void>;
+  loading: boolean;
+  error: string | null;
 }
 
-const TestimonialsContext = createContext<TestimonialsContextType | undefined>(undefined)
+const TestimonialsContext = createContext<TestimonialsContextType | undefined>(
+  undefined
+);
 
-export function TestimonialsProvider({ children }: { children: ReactNode }) {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    // Load testimonials from localStorage
-    const savedTestimonials = localStorage.getItem("darpan_testimonials")
-    if (savedTestimonials) {
-      const parsedTestimonials = JSON.parse(savedTestimonials).map((testimonial: any) => ({
-        ...testimonial,
-        createdAt: new Date(testimonial.createdAt),
-      }))
-      setTestimonials(parsedTestimonials)
-    } else {
-      // Default testimonials
-      const defaultTestimonials: Testimonial[] = [
-        {
-          id: 1,
-          name: "Sarah Mitchell",
-          role: "Homeowner, Beverly Hills",
-          content:
-            "Darpan Interiors transformed our dated home into a stunning modern sanctuary. Their attention to detail and ability to understand our vision was exceptional. Every room feels perfectly curated.",
-          rating: 5,
-          project: "Whole Home Renovation",
-          createdAt: new Date(),
-        },
-        {
-          id: 2,
-          name: "David Chen",
-          role: "CEO, TechFlow Solutions",
-          content:
-            "Our new headquarters reflects our company culture perfectly. The team created a space that's both professional and inspiring. Employee satisfaction has increased significantly since the redesign.",
-          rating: 5,
-          project: "Corporate Office Design",
-          createdAt: new Date(),
-        },
-        {
-          id: 3,
-          name: "Maria Rodriguez",
-          role: "Restaurant Owner",
-          content:
-            "The restaurant design exceeded all expectations. The ambiance is exactly what we envisioned, and our customers constantly compliment the beautiful interior. It's become a destination in itself.",
-          rating: 5,
-          project: "Restaurant Interior",
-          createdAt: new Date(),
-        },
-      ]
-      setTestimonials(defaultTestimonials)
-      localStorage.setItem("darpan_testimonials", JSON.stringify(defaultTestimonials))
-    }
-    setLoading(false)
-  }, [])
+export function TestimonialsProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Listen for storage changes from other tabs/windows
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "darpan_testimonials") {
-        const savedTestimonials = localStorage.getItem("darpan_testimonials")
-        if (savedTestimonials) {
-          const parsedTestimonials = JSON.parse(savedTestimonials).map((testimonial: any) => ({
-            ...testimonial,
-            createdAt: new Date(testimonial.createdAt),
-          }))
-          setTestimonials(parsedTestimonials)
-        }
-      }
+    fetchTestimonials();
+  }, []);
+
+  const fetchTestimonials = async () => {
+    try {
+      setLoading(true);
+      const data = await testimonialService.getAllTestimonials();
+      setTestimonials(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Listen for custom events (for same-tab updates)
-    const handleTestimonialsUpdate = () => {
-      const savedTestimonials = localStorage.getItem("darpan_testimonials")
-      if (savedTestimonials) {
-        const parsedTestimonials = JSON.parse(savedTestimonials).map((testimonial: any) => ({
-          ...testimonial,
-          createdAt: new Date(testimonial.createdAt),
-        }))
-        setTestimonials(parsedTestimonials)
-      }
+  const addTestimonial = async (testimonial: Omit<Testimonial, "_id">) => {
+    try {
+      setLoading(true);
+      const newTestimonial = await testimonialService.createTestimonial(
+        testimonial
+      );
+      setTestimonials((prev) => [newTestimonial, ...prev]);
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
+  };
 
-    window.addEventListener("storage", handleStorageChange)
-    window.addEventListener("darpan-testimonials-updated", handleTestimonialsUpdate)
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange)
-      window.removeEventListener("darpan-testimonials-updated", handleTestimonialsUpdate)
+  const updateTestimonial = async (
+    id: string,
+    updated: Partial<Testimonial>
+  ) => {
+    try {
+      setLoading(true);
+      const updatedTestimonial = await testimonialService.updateTestimonial(
+        id,
+        updated
+      );
+      setTestimonials((prev) =>
+        prev.map((t) => (t._id === id ? updatedTestimonial : t))
+      );
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
-  }, [])
+  };
 
-  const addTestimonial = (newTestimonial: Omit<Testimonial, "id" | "createdAt">) => {
-    const testimonial: Testimonial = {
-      ...newTestimonial,
-      id: Date.now(),
-      createdAt: new Date(),
+  const deleteTestimonial = async (id: string) => {
+    try {
+      setLoading(true);
+      await testimonialService.deleteTestimonial(id);
+      setTestimonials((prev) => prev.filter((t) => t._id !== id));
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
-    const updatedTestimonials = [testimonial, ...testimonials]
-    setTestimonials(updatedTestimonials)
-    localStorage.setItem("darpan_testimonials", JSON.stringify(updatedTestimonials))
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent("darpan-testimonials-updated"))
-    }, 0)
-  }
-
-  const updateTestimonial = (id: number, updatedTestimonial: Partial<Omit<Testimonial, "id" | "createdAt">>) => {
-    const updatedTestimonials = testimonials.map((testimonial) =>
-      testimonial.id === id ? { ...testimonial, ...updatedTestimonial } : testimonial,
-    )
-    setTestimonials(updatedTestimonials)
-    localStorage.setItem("darpan_testimonials", JSON.stringify(updatedTestimonials))
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent("darpan-testimonials-updated"))
-    }, 0)
-  }
-
-  const deleteTestimonial = (id: number) => {
-    const updatedTestimonials = testimonials.filter((testimonial) => testimonial.id !== id)
-    setTestimonials(updatedTestimonials)
-    localStorage.setItem("darpan_testimonials", JSON.stringify(updatedTestimonials))
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent("darpan-testimonials-updated"))
-    }, 0)
-  }
+  };
 
   return (
     <TestimonialsContext.Provider
-      value={{ testimonials, addTestimonial, updateTestimonial, deleteTestimonial, loading }}
+      value={{
+        testimonials,
+        addTestimonial,
+        updateTestimonial,
+        deleteTestimonial,
+        loading,
+        error,
+      }}
     >
       {children}
     </TestimonialsContext.Provider>
-  )
+  );
 }
 
 export function useTestimonials() {
-  const context = useContext(TestimonialsContext)
-  if (context === undefined) {
-    throw new Error("useTestimonials must be used within a TestimonialsProvider")
+  const context = useContext(TestimonialsContext);
+  if (!context) {
+    throw new Error("useTestimonials must be used within TestimonialsProvider");
   }
-  return context
+  return context;
 }

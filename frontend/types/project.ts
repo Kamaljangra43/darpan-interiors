@@ -1,14 +1,42 @@
 export interface Project {
-  id: number
-  title: string
-  category: string
-  image: string
-  images: string[] // Make this required instead of optional
-  description: string // Make this required instead of optional
-  details?: string
-  client?: string
-  year?: string
-  location?: string
-  duration: string // Add duration as required field
-  createdAt: Date
+  _id?: string;
+  id?: string;
+  title: string;
+  category: string;
+  description: string;
+  details?: string;
+  client?: string;
+  year?: string;
+  duration?: string; // Added missing duration field
+  location?: string;
+  image: string;
+  images: string[]; // Changed to simple string array for image URLs
+  featured?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Testimonial {
+  _id?: string;
+  id?: string;
+  name: string;
+  content: string;
+  rating: number;
+  image?: {
+    url: string;
+    public_id: string;
+  };
+  featured?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ImageData {
+  _id?: string;
+  url: string;
+  public_id: string;
+  category: string;
+  section?: string;
+  alt_text?: string;
+  title?: string;
 }
