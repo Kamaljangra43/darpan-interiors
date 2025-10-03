@@ -2,7 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
-
+const imageRoutes = require("./routes/imageRoutes");
+const testimonialRoutes = require("./routes/testimonialRoutes");
 // Load environment variables
 dotenv.config();
 
@@ -44,6 +45,8 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Something went wrong!" });
 });
+app.use("/api/images", imageRoutes);
+app.use("/api/testimonials", testimonialRoutes);
 
 const PORT = process.env.PORT || 5000;
 

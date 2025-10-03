@@ -39,7 +39,26 @@ const getUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Google OAuth callback
+// @route   GET /api/auth/google/callback
+// @access  Public
+const googleAuth = asyncHandler(async (req, res) => {
+  // User is attached to req.user by passport
+  if (req.user) {
+    res.json({
+      _id: req.user._id,
+      username: req.user.username,
+      email: req.user.email,
+      token: generateToken(req.user._id),
+    });
+  } else {
+    res.status(401);
+    throw new Error("Google authentication failed");
+  }
+});
+
 module.exports = {
   loginUser,
   getUserProfile,
+  googleAuth,
 };
