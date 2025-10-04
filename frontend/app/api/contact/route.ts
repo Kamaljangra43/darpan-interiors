@@ -46,9 +46,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Send notification email to admin (your GoDaddy email)
+    // NOTE: In test mode (without verified domain), Resend only allows sending to YOUR email
+    // Change to process.env.ADMIN_EMAIL once domain is verified
     const adminEmailResponse = await resend.emails.send({
       from: "Darpan Interiors <onboarding@resend.dev>", // Change this to your verified domain email once set up
-      to: [process.env.ADMIN_EMAIL || "info@darpaninteriors.com"], // Your GoDaddy professional email
+      to: ["kamalsinghjangra106@gmail.com"], // TESTING: Your Resend account email
+      // to: [process.env.ADMIN_EMAIL || "info@darpaninteriors.com"], // PRODUCTION: Uncomment after domain verification
       replyTo: email, // Allow direct reply to the customer
       subject: `🏠 New Contact Form Submission - ${firstName} ${
         lastName || ""
@@ -162,6 +165,9 @@ ${message}
     }
 
     // Send auto-reply email to the customer
+    // NOTE: Disabled in test mode - Resend only allows sending to verified email in test mode
+    // Uncomment after domain verification
+    /* 
     const autoReplyResponse = await resend.emails.send({
       from: "Darpan Interiors <onboarding@resend.dev>", // Change this to your verified domain email
       to: [email],
@@ -281,6 +287,7 @@ This is an automated response. Please do not reply to this email directly.
     if (autoReplyResponse.error) {
       console.error("Resend auto-reply error:", autoReplyResponse.error);
     }
+    */
 
     return NextResponse.json(
       {

@@ -12,7 +12,6 @@ const projectRoutes = require("./routes/projectRoutes");
 const imageRoutes = require("./routes/imageRoutes");
 const testimonialRoutes = require("./routes/testimonialRoutes");
 const statsRoutes = require("./routes/statsRoutes");
-const aboutRoutes = require("./routes/aboutRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
 const siteSettingsRoutes = require("./routes/siteSettingsRoutes");
 
@@ -42,7 +41,6 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/images", imageRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/stats", statsRoutes);
-app.use("/api/about", aboutRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/site-settings", siteSettingsRoutes);
 app.use("/api/site-images", require("./routes/siteImageRoutes"));

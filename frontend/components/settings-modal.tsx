@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { X, Moon, Sun } from "lucide-react"
-import { useTheme } from "../contexts/theme-context"
+import { Button } from "@/components/ui/button";
+import { X, Moon, Sun } from "lucide-react";
+import { useTheme } from "../contexts/theme-context";
 
 interface SettingsModalProps {
-  onClose: () => void
+  onClose: () => void;
 }
 
 export default function SettingsModal({ onClose }: SettingsModalProps) {
-  const { isDarkMode, toggleDarkMode } = useTheme()
+  const { isDarkMode, toggleDarkMode } = useTheme();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -21,12 +21,22 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
         } rounded-lg p-8 max-w-md w-full shadow-xl`}
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className={`text-2xl font-light ${isDarkMode ? "text-white" : "text-gray-900"}`}>Settings</h2>
+          <h2
+            className={`text-2xl font-light ${
+              isDarkMode ? "text-white" : "text-gray-900"
+            }`}
+          >
+            Settings
+          </h2>
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className={isDarkMode ? "text-gray-400 hover:text-white hover:bg-gray-800" : ""}
+            className={
+              isDarkMode
+                ? "text-gray-400 hover:text-white hover:bg-gray-800"
+                : ""
+            }
           >
             <X className="h-4 w-4" />
           </Button>
@@ -35,11 +45,23 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
         <div className="space-y-6">
           {/* Dark Mode Toggle */}
           <div>
-            <h3 className={`text-lg font-medium mb-4 ${isDarkMode ? "text-white" : "text-gray-900"}`}>Appearance</h3>
+            <h3
+              className={`text-lg font-medium mb-4 ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Appearance
+            </h3>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {isDarkMode ? <Moon className="h-5 w-5 text-gray-300" /> : <Sun className="h-5 w-5 text-amber-600" />}
-                <span className={isDarkMode ? "text-gray-300" : "text-gray-700"}>
+                {isDarkMode ? (
+                  <Moon className="h-5 w-5 text-gray-300" />
+                ) : (
+                  <Sun className="h-5 w-5 text-amber-600" />
+                )}
+                <span
+                  className={isDarkMode ? "text-gray-300" : "text-gray-700"}
+                >
                   {isDarkMode ? "Dark Mode" : "Light Mode"}
                 </span>
               </div>
@@ -57,20 +79,8 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
               </button>
             </div>
           </div>
-
-          {/* About Section */}
-          <div className={`pt-6 border-t ${isDarkMode ? "border-gray-800" : "border-gray-200"}`}>
-            <h3 className={`text-lg font-medium mb-2 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-              About Darpan Interiors
-            </h3>
-            <p className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
-              Version 1.0.0
-              <br />
-              Professional interior design portfolio showcasing luxury residential and commercial projects.
-            </p>
-          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

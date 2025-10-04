@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useTheme } from "../contexts/theme-context"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { X, Calendar, User, MessageSquare } from "lucide-react"
+import type React from "react";
+import { useTheme } from "../contexts/theme-context";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { X, Calendar, User, MessageSquare } from "lucide-react";
 
 interface ConsultationModalProps {
-  onClose: () => void
+  onClose: () => void;
 }
 
 export default function ConsultationModal({ onClose }: ConsultationModalProps) {
@@ -19,24 +19,49 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
     preferredTime: "",
     projectType: "",
     message: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
-    type: "success" | "error" | null
-    message: string
-  }>({ type: null, message: "" })
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
 
-  const { isDarkMode } = useTheme()
+  const { isDarkMode } = useTheme();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setSubmitStatus({ type: null, message: "" })
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: "" });
+
+    // Basic validation
+    if (!formData.name.trim() || !formData.email.trim()) {
+      setSubmitStatus({
+        type: "error",
+        message: "Please fill in all required fields (Name and Email).",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setSubmitStatus({
+        type: "error",
+        message: "Please enter a valid email address.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const response = await fetch("/api/consultation", {
@@ -45,15 +70,17 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (response.ok) {
         setSubmitStatus({
           type: "success",
-          message: result.message,
-        })
+          message:
+            result.message ||
+            "Consultation booked successfully! Check your email for confirmation.",
+        });
         // Reset form
         setFormData({
           name: "",
@@ -63,37 +90,56 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
           preferredTime: "",
           projectType: "",
           message: "",
-        })
+        });
+
+        // Auto-close modal after 3 seconds on success
+        setTimeout(() => {
+          onClose();
+        }, 3000);
       } else {
         setSubmitStatus({
           type: "error",
           message: result.error || "Failed to book consultation",
-        })
+        });
       }
     } catch (error) {
       setSubmitStatus({
         type: "error",
         message: "Network error. Please try again.",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div
-        className={`${isDarkMode ? "bg-gray-900 border border-gray-800" : "bg-white border border-gray-200"} rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}
+        className={`${
+          isDarkMode
+            ? "bg-gray-900 border border-gray-800"
+            : "bg-white border border-gray-200"
+        } rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}
       >
         {/* Header */}
         <div
-          className={`flex justify-between items-center p-6 border-b ${isDarkMode ? "border-gray-800" : "border-gray-200"}`}
+          className={`flex justify-between items-center p-6 border-b ${
+            isDarkMode ? "border-gray-800" : "border-gray-200"
+          }`}
         >
           <div>
-            <h2 className={`text-2xl font-light ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+            <h2
+              className={`text-2xl font-light ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
               Book Free Consultation
             </h2>
-            <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-sm mt-1`}>
+            <p
+              className={`${
+                isDarkMode ? "text-gray-400" : "text-gray-600"
+              } text-sm mt-1`}
+            >
               Schedule a complimentary design consultation
             </p>
           </div>
@@ -101,7 +147,11 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className={isDarkMode ? "text-gray-400 hover:text-white hover:bg-gray-800" : ""}
+            className={
+              isDarkMode
+                ? "text-gray-400 hover:text-white hover:bg-gray-800"
+                : ""
+            }
           >
             <X className="h-6 w-6" />
           </Button>
@@ -117,8 +167,8 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
                     ? "bg-green-500/20 text-green-300 border border-green-500/30"
                     : "bg-green-50 text-green-800 border border-green-200"
                   : isDarkMode
-                    ? "bg-red-500/20 text-red-300 border border-red-500/30"
-                    : "bg-red-50 text-red-800 border border-red-200"
+                  ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                  : "bg-red-50 text-red-800 border border-red-200"
               }`}
             >
               {submitStatus.message}
@@ -129,14 +179,24 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
             {/* Personal Information */}
             <div>
               <h3
-                className={`text-lg font-medium ${isDarkMode ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}
+                className={`text-lg font-medium ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                } mb-4 flex items-center gap-2`}
               >
-                <User className={`h-5 w-5 ${isDarkMode ? "text-amber-400" : "text-amber-600"}`} />
+                <User
+                  className={`h-5 w-5 ${
+                    isDarkMode ? "text-amber-400" : "text-amber-600"
+                  }`}
+                />
                 Personal Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                  <label
+                    className={`block text-sm font-medium ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    } mb-2`}
+                  >
                     Full Name *
                   </label>
                   <input
@@ -154,7 +214,11 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                  <label
+                    className={`block text-sm font-medium ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    } mb-2`}
+                  >
                     Email Address *
                   </label>
                   <input
@@ -173,7 +237,11 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
                 </div>
               </div>
               <div className="mt-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                <label
+                  className={`block text-sm font-medium ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  } mb-2`}
+                >
                   Phone Number
                 </label>
                 <input
@@ -194,14 +262,24 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
             {/* Consultation Preferences */}
             <div>
               <h3
-                className={`text-lg font-medium ${isDarkMode ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}
+                className={`text-lg font-medium ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                } mb-4 flex items-center gap-2`}
               >
-                <Calendar className={`h-5 w-5 ${isDarkMode ? "text-amber-400" : "text-amber-600"}`} />
+                <Calendar
+                  className={`h-5 w-5 ${
+                    isDarkMode ? "text-amber-400" : "text-amber-600"
+                  }`}
+                />
                 Consultation Preferences
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                  <label
+                    className={`block text-sm font-medium ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    } mb-2`}
+                  >
                     Preferred Date
                   </label>
                   <input
@@ -218,7 +296,11 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                  <label
+                    className={`block text-sm font-medium ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    } mb-2`}
+                  >
                     Preferred Time
                   </label>
                   <select
@@ -248,13 +330,23 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
             {/* Project Information */}
             <div>
               <h3
-                className={`text-lg font-medium ${isDarkMode ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}
+                className={`text-lg font-medium ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                } mb-4 flex items-center gap-2`}
               >
-                <MessageSquare className={`h-5 w-5 ${isDarkMode ? "text-amber-400" : "text-amber-600"}`} />
+                <MessageSquare
+                  className={`h-5 w-5 ${
+                    isDarkMode ? "text-amber-400" : "text-amber-600"
+                  }`}
+                />
                 Project Information
               </h3>
               <div className="mb-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                <label
+                  className={`block text-sm font-medium ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  } mb-2`}
+                >
                   Project Type
                 </label>
                 <select
@@ -262,27 +354,51 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
                   value={formData.projectType}
                   onChange={handleInputChange}
                   className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
-                    isDarkMode ? "bg-gray-800 border-gray-700 text-gray-100" : "bg-white border-gray-300 text-gray-900"
+                    isDarkMode
+                      ? "bg-gray-800 border-gray-700 text-gray-100"
+                      : "bg-white border-gray-300 text-gray-900"
                   }`}
                 >
                   <option value="">Select project type</option>
-                  <option value="residential">Residential Design</option>
-                  <option value="commercial">Commercial Design</option>
-                  <option value="kitchen-bath">Kitchen & Bath</option>
-                  <option value="renovation">Luxury Renovation</option>
-                  <option value="furniture">Furniture & Styling</option>
-                  <option value="consultation">Design Consultation</option>
+                  <option value="Residential Interior Design">
+                    Residential Interior Design
+                  </option>
+                  <option value="Commercial Interior Design">
+                    Commercial Interior Design
+                  </option>
+                  <option value="Kitchen & Bathroom Design">
+                    Kitchen & Bathroom Design
+                  </option>
+                  <option value="Complete Home Renovation">
+                    Complete Home Renovation
+                  </option>
+                  <option value="Space Planning">Space Planning</option>
+                  <option value="Furniture & Decor Selection">
+                    Furniture & Decor Selection
+                  </option>
+                  <option value="Color Consultation">Color Consultation</option>
+                  <option value="Lighting Design">Lighting Design</option>
+                  <option value="Custom Furniture Design">
+                    Custom Furniture Design
+                  </option>
+                  <option value="3D Visualization">3D Visualization</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
               <div>
-                <label className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
-                  Tell us about your project
+                <label
+                  className={`block text-sm font-medium ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  } mb-2`}
+                >
+                  Tell us about your project (Optional)
                 </label>
                 <textarea
                   name="message"
                   value={formData.message}
                   onChange={handleInputChange}
                   rows={4}
+                  maxLength={2000}
                   className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none ${
                     isDarkMode
                       ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500"
@@ -290,6 +406,13 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
                   }`}
                   placeholder="Describe your vision, timeline, budget range, and any specific requirements..."
                 />
+                <p
+                  className={`text-xs mt-1 ${
+                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  {formData.message.length}/2000 characters
+                </p>
               </div>
             </div>
 
@@ -299,14 +422,22 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className={`flex-1 ${isDarkMode ? "border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600" : "border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400"}`}
+                className={`flex-1 ${
+                  isDarkMode
+                    ? "border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400"
+                }`}
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className={`flex-1 ${isDarkMode ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600" : "bg-amber-600 hover:bg-amber-700"} text-white`}
+                className={`flex-1 ${
+                  isDarkMode
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                    : "bg-amber-600 hover:bg-amber-700"
+                } text-white`}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Booking..." : "Book Consultation"}
@@ -316,10 +447,24 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
 
           {/* Additional Info */}
           <div
-            className={`mt-6 p-4 rounded-lg ${isDarkMode ? "bg-amber-500/10 border border-amber-500/20" : "bg-amber-50"}`}
+            className={`mt-6 p-4 rounded-lg ${
+              isDarkMode
+                ? "bg-amber-500/10 border border-amber-500/20"
+                : "bg-amber-50"
+            }`}
           >
-            <h4 className={`font-medium ${isDarkMode ? "text-amber-400" : "text-amber-900"} mb-2`}>What to Expect:</h4>
-            <ul className={`text-sm ${isDarkMode ? "text-amber-300/90" : "text-amber-800"} space-y-1`}>
+            <h4
+              className={`font-medium ${
+                isDarkMode ? "text-amber-400" : "text-amber-900"
+              } mb-2`}
+            >
+              What to Expect:
+            </h4>
+            <ul
+              className={`text-sm ${
+                isDarkMode ? "text-amber-300/90" : "text-amber-800"
+              } space-y-1`}
+            >
               <li>• 60-minute complimentary consultation</li>
               <li>• Discussion of your vision and requirements</li>
               <li>• Initial design concepts and recommendations</li>
@@ -330,5 +475,5 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

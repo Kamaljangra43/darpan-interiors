@@ -110,57 +110,10 @@ export default function AdminDashboardPage() {
   const [editingStat, setEditingStat] = useState<string | null>(null);
   const [editStatValue, setEditStatValue] = useState({ label: "", value: "" });
 
-  // About section state
-  const [aboutData, setAboutData] = useState({
-    title: "About Darpan Interiors",
-    subtitle: "Crafting Beautiful Spaces Since 2010",
-    description:
-      "We are a premier interior design firm specializing in creating timeless, elegant spaces that reflect our clients' unique personalities and lifestyles.",
-    mission:
-      "To transform spaces into beautiful, functional environments that enhance quality of life.",
-    vision:
-      "To be recognized as the leading interior design firm known for innovation, quality, and client satisfaction.",
-  });
-  const [editingAbout, setEditingAbout] = useState(false);
-
   // Services state
-  const [services, setServices] = useState([
-    {
-      id: 1,
-      title: "Residential Design",
-      description: "Complete home interior design solutions",
-      icon: "🏠",
-    },
-    {
-      id: 2,
-      title: "Commercial Design",
-      description: "Office and retail space design",
-      icon: "🏢",
-    },
-    {
-      id: 3,
-      title: "Space Planning",
-      description: "Optimal layout and functionality",
-      icon: "📐",
-    },
-    {
-      id: 4,
-      title: "Furniture Selection",
-      description: "Custom and curated furniture pieces",
-      icon: "🛋️",
-    },
-  ]);
-  const [showAddService, setShowAddService] = useState(false);
-  const [newService, setNewService] = useState({
-    title: "",
-    description: "",
-    icon: "🎨",
-  });
-
   // Image management states
   const [imageSection, setImageSection] = useState("hero");
   const [heroImages, setHeroImages] = useState<string[]>([]);
-  const [aboutImage, setAboutImage] = useState("");
   const [logoImage, setLogoImage] = useState("");
 
   // Site images states
@@ -565,24 +518,6 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleSaveAbout = () => {
-    setEditingAbout(false);
-    alert("About section updated successfully!");
-  };
-
-  const handleAddService = (e: React.FormEvent) => {
-    e.preventDefault();
-    setServices([...services, { id: Date.now(), ...newService }]);
-    setNewService({ title: "", description: "", icon: "🎨" });
-    setShowAddService(false);
-  };
-
-  const handleDeleteService = (id: number) => {
-    if (confirm("Delete this service?")) {
-      setServices(services.filter((s) => s.id !== id));
-    }
-  };
-
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     handleImageUpload(e, async (images) => {
       setLogoImage(images[0]);
@@ -727,13 +662,6 @@ export default function AdminDashboardPage() {
             icon={<BarChart3 className="w-4 h-4" />}
           >
             Stats
-          </TabButton>
-          <TabButton
-            active={activeTab === "about"}
-            onClick={() => setActiveTab("about")}
-            icon={<Info className="w-4 h-4" />}
-          >
-            About
           </TabButton>
           <TabButton
             active={activeTab === "services"}
@@ -1462,7 +1390,13 @@ export default function AdminDashboardPage() {
 
                     {/* Profile Picture */}
                     {testimonial.image ? (
-                      <div className="mb-4">
+                      <div 
+                        className="mb-4 mx-auto overflow-hidden rounded-full"
+                        style={{
+                          width: "112px",
+                          height: "112px",
+                        }}
+                      >
                         <img
                           src={
                             typeof testimonial.image === "string"
@@ -1470,7 +1404,11 @@ export default function AdminDashboardPage() {
                               : testimonial.image.url
                           }
                           alt={testimonial.name}
-                          className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover object-center border-4 border-gray-100 shadow-md mx-auto"
+                          className="w-full h-full object-cover object-center border-4 border-gray-100 shadow-md scale-110"
+                          style={{
+                            objectFit: "cover",
+                            objectPosition: "center",
+                          }}
                         />
                       </div>
                     ) : (
@@ -1741,194 +1679,42 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* ABOUT TAB */}
-        {activeTab === "about" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Manage About</h2>
-              {!editingAbout ? (
-                <Button onClick={() => setEditingAbout(true)}>
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-              ) : (
-                <Button onClick={handleSaveAbout} className="bg-green-600">
-                  Save
-                </Button>
-              )}
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6">
-              {editingAbout ? (
-                <div className="space-y-4">
-                  <Input
-                    label="Title"
-                    value={aboutData.title}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setAboutData((prev) => ({
-                        ...prev,
-                        title: e.target.value,
-                      }))
-                    }
-                  />
-                  <Input
-                    label="Subtitle"
-                    value={aboutData.subtitle}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setAboutData((prev) => ({
-                        ...prev,
-                        subtitle: e.target.value,
-                      }))
-                    }
-                  />
-                  <TextArea
-                    label="Description"
-                    value={aboutData.description}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                      setAboutData((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    rows={4}
-                  />
-                  <TextArea
-                    label="Mission"
-                    value={aboutData.mission}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                      setAboutData((prev) => ({
-                        ...prev,
-                        mission: e.target.value,
-                      }))
-                    }
-                    rows={3}
-                  />
-                  <TextArea
-                    label="Vision"
-                    value={aboutData.vision}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                      setAboutData((prev) => ({
-                        ...prev,
-                        vision: e.target.value,
-                      }))
-                    }
-                    rows={3}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <h3 className="text-2xl font-bold">{aboutData.title}</h3>
-                  <p className="text-amber-600">{aboutData.subtitle}</p>
-                  <p className="text-gray-600">{aboutData.description}</p>
-                  <div className="grid grid-cols-2 gap-6 pt-4 border-t">
-                    <div>
-                      <h4 className="font-semibold mb-2">Mission</h4>
-                      <p className="text-gray-600 text-sm">
-                        {aboutData.mission}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-2">Vision</h4>
-                      <p className="text-gray-600 text-sm">
-                        {aboutData.vision}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* SERVICES TAB */}
         {activeTab === "services" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Manage Services</h2>
-              <Button onClick={() => setShowAddService(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Service
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {services.map((service) => (
-                <div
-                  key={service.id}
-                  className="bg-white rounded-lg shadow-md p-6"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="text-3xl">{service.icon}</div>
-                    <Button
-                      onClick={() => handleDeleteService(service.id)}
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-600"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <h3 className="text-lg font-bold mb-2">{service.title}</h3>
-                  <p className="text-gray-600 text-sm">{service.description}</p>
+          <div className="flex items-center justify-center min-h-[500px]">
+            <div className="text-center max-w-md">
+              <div className="mb-6 flex justify-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center">
+                  <Wrench className="w-10 h-10 text-amber-600" />
                 </div>
-              ))}
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                Services Management
+              </h2>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-full mb-4">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                <span className="text-sm font-medium text-blue-700">
+                  Coming Soon
+                </span>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Service management functionality is currently under development.
+                This feature will allow you to add, edit, and manage your
+                interior design services directly from the admin dashboard.
+              </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left">
+                <h3 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                  <Info className="w-4 h-4" />
+                  Planned Features
+                </h3>
+                <ul className="text-sm text-amber-800 space-y-1">
+                  <li>• Add and manage service offerings</li>
+                  <li>• Custom service descriptions and icons</li>
+                  <li>• Service pricing and details</li>
+                  <li>• Real-time updates to website</li>
+                </ul>
+              </div>
             </div>
-
-            {showAddService && (
-              <Modal
-                onClose={() => setShowAddService(false)}
-                title="Add Service"
-              >
-                <form onSubmit={handleAddService} className="space-y-4">
-                  <Input
-                    label="Title *"
-                    value={newService.title}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setNewService((prev) => ({
-                        ...prev,
-                        title: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-                  <TextArea
-                    label="Description *"
-                    value={newService.description}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                      setNewService((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    rows={3}
-                    required
-                  />
-                  <Input
-                    label="Icon (Emoji)"
-                    value={newService.icon}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setNewService((prev) => ({
-                        ...prev,
-                        icon: e.target.value,
-                      }))
-                    }
-                  />
-                  <div className="flex gap-4 pt-4">
-                    <Button
-                      type="button"
-                      onClick={() => setShowAddService(false)}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit" className="flex-1">
-                      Add
-                    </Button>
-                  </div>
-                </form>
-              </Modal>
-            )}
           </div>
         )}
       </div>
