@@ -1,0 +1,24 @@
+feat: Enhanced project management on admin dashboard and improved portfolio UX
+
+Admin Dashboard Improvements:
+- Added featured image management with toggle, reorder, and delete controls
+- Fixed delete button functionality in Edit Project form (z-index issue)
+- Implemented featured image selection in Add New Project form
+- Auto-feature first 3 images if none selected
+- Added helper functions for image management
+
+Portfolio User Experience:
+- Redesigned project detail modal with perfect 320px height alignment
+- Implemented sticky Featured Views that scrolls independently
+- Moved Client Details to full-width section for better layout
+- Added gradient fade effect for description overflow
+- Improved spacing throughout (48px gaps, 24px vertical rhythm)
+- Enhanced typography with 16px font size and relaxed line height
+
+Backend Updates:
+- Updated project model to support featured images with metadata
+- Modified API to handle image objects with featured flags and order
+- Added image normalization in projects context
+
+Documentation:
+- Added comprehensive guides for testing, implementation, and migration
