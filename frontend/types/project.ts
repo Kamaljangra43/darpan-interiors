@@ -1,3 +1,10 @@
+// Image with metadata
+export interface ProjectImage {
+  url: string;
+  featured?: boolean; // Mark which images for slideshow
+  order?: number; // For custom ordering
+}
+
 export interface Project {
   _id?: string;
   id?: string;
@@ -9,8 +16,11 @@ export interface Project {
   year?: string;
   duration?: string;
   location?: string;
-  image: string;
-  images: string[];
+  image: string; // Main thumbnail image
+
+  // Images array with featured flag and order
+  images: ProjectImage[];
+
   featured?: boolean;
   createdAt?: string;
   updatedAt?: string;

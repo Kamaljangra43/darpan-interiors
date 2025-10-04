@@ -70,6 +70,24 @@ export default function AdminDashboardPage() {
     images: [] as string[],
   });
 
+  // Enhanced state for managing featured images
+  const [editProjectImages, setEditProjectImages] = useState<
+    Array<{
+      url: string;
+      featured: boolean;
+      order: number;
+    }>
+  >([]);
+
+  // State for managing featured images in Add Project form
+  const [newProjectImages, setNewProjectImages] = useState<
+    Array<{
+      url: string;
+      featured: boolean;
+      order: number;
+    }>
+  >([]);
+
   // Testimonial states
   const [showAddTestimonial, setShowAddTestimonial] = useState(false);
   // Fix the initial state - ensure rating is always a number
@@ -145,6 +163,126 @@ export default function AdminDashboardPage() {
   const [aboutImage, setAboutImage] = useState("");
   const [logoImage, setLogoImage] = useState("");
 
+  // Loading state for project operations
+  const [isSavingProject, setIsSavingProject] = useState(false);
+
+  // Helper function to toggle featured status
+  const toggleFeaturedImage = (index: number, featured: boolean) => {
+    setEditProjectImages((prev) =>
+      prev.map((img, i) => (i === index ? { ...img, featured } : img))
+    );
+  };
+
+  // Helper function to move image up
+  const moveImageUp = (index: number) => {
+    if (index === 0) return;
+    setEditProjectImages((prev) => {
+      const newImages = [...prev];
+      [newImages[index - 1], newImages[index]] = [
+        newImages[index],
+        newImages[index - 1],
+      ];
+      return newImages.map((img, i) => ({ ...img, order: i }));
+    });
+    setEditProjectData((prev) => {
+      const newImageUrls = [...prev.images];
+      [newImageUrls[index - 1], newImageUrls[index]] = [
+        newImageUrls[index],
+        newImageUrls[index - 1],
+      ];
+      return { ...prev, images: newImageUrls };
+    });
+  };
+
+  // Helper function to move image down
+  const moveImageDown = (index: number) => {
+    if (index === editProjectImages.length - 1) return;
+    setEditProjectImages((prev) => {
+      const newImages = [...prev];
+      [newImages[index], newImages[index + 1]] = [
+        newImages[index + 1],
+        newImages[index],
+      ];
+      return newImages.map((img, i) => ({ ...img, order: i }));
+    });
+    setEditProjectData((prev) => {
+      const newImageUrls = [...prev.images];
+      [newImageUrls[index], newImageUrls[index + 1]] = [
+        newImageUrls[index],
+        newImageUrls[index + 1],
+      ];
+      return { ...prev, images: newImageUrls };
+    });
+  };
+
+  // Helper function to remove image
+  const removeImage = (index: number) => {
+    setEditProjectImages((prev) =>
+      prev.filter((_, i) => i !== index).map((img, i) => ({ ...img, order: i }))
+    );
+    setEditProjectData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  };
+
+  // Helper functions for Add Project form
+  const toggleNewProjectFeatured = (index: number, featured: boolean) => {
+    setNewProjectImages((prev) =>
+      prev.map((img, i) => (i === index ? { ...img, featured } : img))
+    );
+  };
+
+  const moveNewProjectImageUp = (index: number) => {
+    if (index === 0) return;
+    setNewProjectImages((prev) => {
+      const newImages = [...prev];
+      [newImages[index - 1], newImages[index]] = [
+        newImages[index],
+        newImages[index - 1],
+      ];
+      return newImages.map((img, i) => ({ ...img, order: i }));
+    });
+    setNewProject((prev) => {
+      const newImageUrls = [...prev.images];
+      [newImageUrls[index - 1], newImageUrls[index]] = [
+        newImageUrls[index],
+        newImageUrls[index - 1],
+      ];
+      return { ...prev, images: newImageUrls };
+    });
+  };
+
+  const moveNewProjectImageDown = (index: number) => {
+    if (index === newProjectImages.length - 1) return;
+    setNewProjectImages((prev) => {
+      const newImages = [...prev];
+      [newImages[index], newImages[index + 1]] = [
+        newImages[index + 1],
+        newImages[index],
+      ];
+      return newImages.map((img, i) => ({ ...img, order: i }));
+    });
+    setNewProject((prev) => {
+      const newImageUrls = [...prev.images];
+      [newImageUrls[index], newImageUrls[index + 1]] = [
+        newImageUrls[index + 1],
+        newImageUrls[index],
+      ];
+      return { ...prev, images: newImageUrls };
+    });
+  };
+
+  const removeNewProjectImage = (index: number) => {
+    setNewProjectImages((prev) =>
+      prev.filter((_, i) => i !== index).map((img, i) => ({ ...img, order: i }))
+    );
+    setNewProject((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  };
+
   // Verify admin access
   useEffect(() => {
     const verifyAdminAccess = async () => {
@@ -200,8 +338,32 @@ export default function AdminDashboardPage() {
 
   const handleAddProject = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validation
+    if (
+      !newProject.title ||
+      !newProject.category ||
+      newProject.images.length === 0
+    ) {
+      alert("Please fill in all required fields including at least one image.");
+      return;
+    }
+
+    setIsSavingProject(true);
     try {
-      await addProject(newProject as any);
+      // Convert newProjectImages to the format expected by the API
+      const imagesWithMetadata = newProjectImages.map((img) => ({
+        url: img.url,
+        featured: img.featured,
+        order: img.order,
+      }));
+
+      const projectData = {
+        ...newProject,
+        images: imagesWithMetadata,
+      };
+
+      await addProject(projectData as any);
       setNewProject({
         title: "",
         category: "Residential",
@@ -212,16 +374,30 @@ export default function AdminDashboardPage() {
         details: "",
         images: [],
       });
+      setNewProjectImages([]);
       setShowAddProject(false);
       alert("Project added successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding project:", error);
-      alert("Failed to add project. Please try again.");
+      const errorMessage =
+        error?.response?.data?.message || error?.message || "Unknown error";
+      alert(
+        `Failed to add project: ${errorMessage}\n\nPlease check your internet connection and try again.`
+      );
+    } finally {
+      setIsSavingProject(false);
     }
   };
 
   const handleEditProject = (project: Project) => {
     setEditingProject(project);
+
+    // Extract image URLs for legacy compatibility
+    const imageUrls =
+      project.images?.map((img: any) =>
+        typeof img === "object" ? img.url : img
+      ) || [];
+
     setEditProjectData({
       title: project.title,
       category: project.category,
@@ -230,8 +406,30 @@ export default function AdminDashboardPage() {
       location: project.location || "",
       description: project.description || "",
       details: project.details || "",
-      images: project.images || [],
+      images: imageUrls,
     });
+
+    // Convert project images to enhanced format for featured management
+    if (project.images && project.images.length > 0) {
+      const processedImages = project.images.map((img: any, index: number) => {
+        if (typeof img === "object" && img.url) {
+          return {
+            url: img.url,
+            featured: img.featured ?? index < 3,
+            order: img.order ?? index,
+          };
+        }
+        return {
+          url: typeof img === "string" ? img : "",
+          featured: index < 3,
+          order: index,
+        };
+      });
+      setEditProjectImages(processedImages);
+    } else {
+      setEditProjectImages([]);
+    }
+
     setShowEditProject(true);
   };
 
@@ -239,8 +437,26 @@ export default function AdminDashboardPage() {
     e.preventDefault();
     if (!editingProject?._id) return;
 
+    // Validation
+    if (
+      !editProjectData.title ||
+      !editProjectData.category ||
+      editProjectImages.length === 0
+    ) {
+      alert("Please fill in all required fields including at least one image.");
+      return;
+    }
+
+    setIsSavingProject(true);
     try {
-      await updateProject(editingProject._id, editProjectData);
+      const updateData = {
+        ...editProjectData,
+        images: editProjectImages, // Send the full image objects with featured flags
+      };
+
+      console.log("🔄 Updating project with images:", updateData);
+
+      await updateProject(editingProject._id, updateData);
       setShowEditProject(false);
       setEditingProject(null);
       setEditProjectData({
@@ -253,9 +469,17 @@ export default function AdminDashboardPage() {
         details: "",
         images: [],
       });
-    } catch (error) {
+      setEditProjectImages([]);
+      alert("Project updated successfully!");
+    } catch (error: any) {
       console.error("Error updating project:", error);
-      alert("Failed to update project");
+      const errorMessage =
+        error?.response?.data?.message || error?.message || "Unknown error";
+      alert(
+        `Failed to update project: ${errorMessage}\n\nPlease check your internet connection and try again.`
+      );
+    } finally {
+      setIsSavingProject(false);
     }
   };
 
@@ -612,59 +836,199 @@ export default function AdminDashboardPage() {
                     <label className="block text-sm font-medium mb-2">
                       Project Images *{" "}
                       <span className="text-gray-500 text-xs">
-                        (First will be main)
+                        (First will be main thumbnail)
                       </span>
                     </label>
+
+                    {/* Featured Images Summary */}
+                    <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Star className="w-4 h-4 text-amber-600" />
+                        <span className="font-medium">
+                          {
+                            editProjectImages.filter((img) => img.featured)
+                              .length
+                          }{" "}
+                          images selected for featured slideshow
+                        </span>
+                      </div>
+                      {editProjectImages.filter((img) => img.featured)
+                        .length === 0 && (
+                        <p className="text-xs text-amber-600 mt-1">
+                          ⚠️ No featured images selected. First 5 will be shown
+                          by default.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Image Grid */}
+                    {editProjectImages.length > 0 && (
+                      <div className="mb-3 grid grid-cols-4 gap-3">
+                        {editProjectImages.map((img, idx) => (
+                          <div
+                            key={idx}
+                            className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700"
+                          >
+                            <Image
+                              src={img.url}
+                              alt={`Preview ${idx + 1}`}
+                              fill
+                              className="object-cover"
+                            />
+
+                            {/* Order Badge */}
+                            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded">
+                              #{idx + 1}
+                            </div>
+
+                            {/* Main Thumbnail Badge */}
+                            {idx === 0 && (
+                              <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-xs font-semibold px-2 py-1 rounded shadow-md">
+                                MAIN
+                              </div>
+                            )}
+
+                            {/* Featured Badge */}
+                            {img.featured && (
+                              <div className="absolute bottom-2 left-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-semibold px-2 py-1 rounded shadow-md flex items-center gap-1">
+                                <Star className="w-3 h-3 fill-white" />
+                                Featured
+                              </div>
+                            )}
+
+                            {/* Control Buttons */}
+                            <div className="absolute top-2 right-2 flex flex-col gap-1 z-20">
+                              {/* Move Up Button */}
+                              {idx > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    moveImageUp(idx);
+                                  }}
+                                  className="bg-blue-600 text-white p-1 rounded hover:bg-blue-700 transition-colors shadow-md"
+                                  title="Move up"
+                                >
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M5 15l7-7 7 7"
+                                    />
+                                  </svg>
+                                </button>
+                              )}
+                              {/* Move Down Button */}
+                              {idx < editProjectImages.length - 1 && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    moveImageDown(idx);
+                                  }}
+                                  className="bg-blue-600 text-white p-1 rounded hover:bg-blue-700 transition-colors shadow-md"
+                                  title="Move down"
+                                >
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M19 9l-7 7-7-7"
+                                    />
+                                  </svg>
+                                </button>
+                              )}
+                              {/* Remove Button */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  removeImage(idx);
+                                }}
+                                className="bg-red-600 text-white p-1 rounded hover:bg-red-700 transition-colors shadow-md"
+                                title="Remove image"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+
+                            {/* Featured Checkbox Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                              <div className="absolute bottom-2 right-2 flex items-center gap-2 pointer-events-auto">
+                                <label className="flex items-center gap-1.5 bg-white/95 dark:bg-gray-800/95 px-2 py-1.5 rounded shadow-lg cursor-pointer hover:bg-white dark:hover:bg-gray-800 transition-colors">
+                                  <input
+                                    type="checkbox"
+                                    checked={img.featured}
+                                    onChange={(e) =>
+                                      toggleFeaturedImage(idx, e.target.checked)
+                                    }
+                                    className="w-4 h-4 text-amber-600 rounded focus:ring-2 focus:ring-amber-500"
+                                  />
+                                  <span className="text-xs font-medium text-gray-900 dark:text-white">
+                                    Featured
+                                  </span>
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add Images Button */}
                     <input
                       type="file"
                       accept="image/*"
                       multiple
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleImageUpload(e, (images) =>
+                        handleImageUpload(e, (newImageUrls) => {
+                          const currentFeaturedCount = editProjectImages.filter(
+                            (img) => img.featured
+                          ).length;
+
+                          // Create new image objects with featured flags
+                          const newImages = newImageUrls.map((url, index) => ({
+                            url,
+                            featured: currentFeaturedCount === 0 && index < 3, // Auto-feature first 3 if none selected
+                            order: editProjectImages.length + index,
+                          }));
+
+                          // Update both states
+                          setEditProjectImages((prev) => [
+                            ...prev,
+                            ...newImages,
+                          ]);
                           setEditProjectData((prev) => ({
                             ...prev,
-                            images: [...prev.images, ...images],
-                          }))
-                        )
+                            images: [...prev.images, ...newImageUrls],
+                          }));
+                        })
                       }
-                      className="w-full border border-gray-300 rounded-md p-2 text-sm"
+                      className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-sm hover:border-amber-500 dark:hover:border-amber-500 transition-colors cursor-pointer"
+                      id="edit-project-images"
                     />
-                    {editProjectData.images.length > 0 && (
-                      <div className="mt-3 grid grid-cols-4 gap-2">
-                        {editProjectData.images.map((img, idx) => (
-                          <div
-                            key={idx}
-                            className="relative aspect-square rounded overflow-hidden"
-                          >
-                            <Image
-                              src={img}
-                              alt={`Preview ${idx + 1}`}
-                              fill
-                              className="object-cover"
-                            />
-                            {idx === 0 && (
-                              <div className="absolute top-1 left-1 bg-amber-600 text-white text-xs px-2 py-1 rounded">
-                                Main
-                              </div>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setEditProjectData((prev) => ({
-                                  ...prev,
-                                  images: prev.images.filter(
-                                    (_, i) => i !== idx
-                                  ),
-                                }))
-                              }
-                              className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded hover:bg-red-700"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <label
+                      htmlFor="edit-project-images"
+                      className="block mt-2 text-xs text-gray-500 dark:text-gray-400 text-center cursor-pointer"
+                    >
+                      Click to add more images • First 3 new images will be
+                      featured if none selected
+                    </label>
                   </div>
 
                   <div className="flex gap-4 pt-4">
@@ -683,12 +1047,22 @@ export default function AdminDashboardPage() {
                       type="submit"
                       className="bg-blue-600 hover:bg-blue-700 flex-1"
                       disabled={
+                        isSavingProject ||
                         !editProjectData.title ||
                         editProjectData.images.length === 0
                       }
                     >
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Changes
+                      {isSavingProject ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Save Changes
+                        </>
+                      )}
                     </Button>
                   </div>
                 </form>
@@ -795,48 +1169,154 @@ export default function AdminDashboardPage() {
                   />
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                       Project Images *{" "}
-                      <span className="text-gray-500 text-xs">
-                        (First will be main)
+                      <span className="text-gray-500 dark:text-gray-400 text-xs">
+                        (Check "Featured" for slideshow)
                       </span>
                     </label>
+
+                    {/* Image Grid with Controls */}
+                    {newProjectImages.length > 0 && (
+                      <div className="mt-4 mb-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {newProjectImages.map((img, idx) => (
+                          <div
+                            key={idx}
+                            className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-500 transition-colors group"
+                          >
+                            {/* Image */}
+                            <Image
+                              src={img.url}
+                              alt={`Image ${idx + 1}`}
+                              fill
+                              className="object-cover"
+                            />
+
+                            {/* Control Buttons - Top Right */}
+                            <div className="absolute top-2 right-2 flex flex-col gap-1.5 z-10">
+                              {/* Move Up Button */}
+                              {idx > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => moveNewProjectImageUp(idx)}
+                                  className="bg-blue-600 text-white p-1 rounded hover:bg-blue-700 transition-colors shadow-md"
+                                  title="Move up"
+                                >
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M5 15l7-7 7 7"
+                                    />
+                                  </svg>
+                                </button>
+                              )}
+                              {/* Move Down Button */}
+                              {idx < newProjectImages.length - 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => moveNewProjectImageDown(idx)}
+                                  className="bg-blue-600 text-white p-1 rounded hover:bg-blue-700 transition-colors shadow-md"
+                                  title="Move down"
+                                >
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M19 9l-7 7-7-7"
+                                    />
+                                  </svg>
+                                </button>
+                              )}
+                              {/* Remove Button */}
+                              <button
+                                type="button"
+                                onClick={() => removeNewProjectImage(idx)}
+                                className="bg-red-600 text-white p-1 rounded hover:bg-red-700 transition-colors shadow-md"
+                                title="Remove image"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+
+                            {/* Featured Checkbox Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity">
+                              <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                                <label className="flex items-center gap-1.5 bg-white/95 dark:bg-gray-800/95 px-2 py-1.5 rounded shadow-lg cursor-pointer hover:bg-white dark:hover:bg-gray-800 transition-colors">
+                                  <input
+                                    type="checkbox"
+                                    checked={img.featured}
+                                    onChange={(e) =>
+                                      toggleNewProjectFeatured(
+                                        idx,
+                                        e.target.checked
+                                      )
+                                    }
+                                    className="w-4 h-4 text-amber-600 rounded focus:ring-2 focus:ring-amber-500"
+                                  />
+                                  <span className="text-xs font-medium text-gray-900 dark:text-white">
+                                    Featured
+                                  </span>
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add Images Button */}
                     <input
                       type="file"
                       accept="image/*"
                       multiple
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleImageUpload(e, (images) =>
-                          setNewProject((prev) => ({ ...prev, images }))
-                        )
+                        handleImageUpload(e, (newImageUrls) => {
+                          const currentFeaturedCount = newProjectImages.filter(
+                            (img) => img.featured
+                          ).length;
+
+                          // Create new image objects with featured flags
+                          const newImages = newImageUrls.map((url, index) => ({
+                            url,
+                            featured: currentFeaturedCount === 0 && index < 3, // Auto-feature first 3 if none selected
+                            order: newProjectImages.length + index,
+                          }));
+
+                          // Update both states
+                          setNewProjectImages((prev) => [
+                            ...prev,
+                            ...newImages,
+                          ]);
+                          setNewProject((prev) => ({
+                            ...prev,
+                            images: [...prev.images, ...newImageUrls],
+                          }));
+                        })
                       }
-                      className="w-full border border-gray-300 rounded-md p-2 text-sm"
-                      required={
-                        newProject.images.length === 0 && !editingProject
-                      }
+                      className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-sm hover:border-amber-500 dark:hover:border-amber-500 transition-colors cursor-pointer"
+                      id="new-project-images"
+                      required={newProject.images.length === 0}
                     />
-                    {newProject.images.length > 0 && (
-                      <div className="mt-3 grid grid-cols-4 gap-2">
-                        {newProject.images.map((img, idx) => (
-                          <div
-                            key={idx}
-                            className="relative aspect-square rounded overflow-hidden"
-                          >
-                            <Image
-                              src={img}
-                              alt={`Preview ${idx + 1}`}
-                              fill
-                              className="object-cover"
-                            />
-                            {idx === 0 && (
-                              <div className="absolute top-1 left-1 bg-amber-600 text-white text-xs px-2 py-1 rounded">
-                                Main
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <label
+                      htmlFor="new-project-images"
+                      className="block mt-2 text-xs text-gray-500 dark:text-gray-400 text-center cursor-pointer"
+                    >
+                      Click to add images • First 3 images will be featured if
+                      none selected
+                    </label>
                   </div>
 
                   <div className="flex gap-4 pt-4">
@@ -852,10 +1332,19 @@ export default function AdminDashboardPage() {
                       type="submit"
                       className="bg-amber-600 hover:bg-amber-700 flex-1"
                       disabled={
-                        !newProject.title || newProject.images.length === 0
+                        isSavingProject ||
+                        !newProject.title ||
+                        newProject.images.length === 0
                       }
                     >
-                      {editingProject ? "Update Project" : "Add Project"}
+                      {isSavingProject ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          {editingProject ? "Updating..." : "Adding..."}
+                        </>
+                      ) : (
+                        <>{editingProject ? "Update Project" : "Add Project"}</>
+                      )}
                     </Button>
                   </div>
                 </form>

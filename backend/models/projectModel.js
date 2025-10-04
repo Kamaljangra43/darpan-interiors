@@ -19,8 +19,20 @@ const projectSchema = new mongoose.Schema(
     year: String,
     duration: String,
     location: String,
-    image: String, // Main image URL
-    images: [String], // Simple array of image URLs (NOT objects)
+    image: String, // Main thumbnail image
+    images: [
+      {
+        url: String,
+        featured: {
+          type: Boolean,
+          default: false, // NEW: Featured flag for slideshow
+        },
+        order: {
+          type: Number,
+          default: 0, // For custom ordering
+        },
+      },
+    ],
     featured: {
       type: Boolean,
       default: false,
