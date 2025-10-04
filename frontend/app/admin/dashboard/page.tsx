@@ -8,6 +8,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/contexts/projects-context";
 import { useTestimonials } from "@/contexts/testimonials-context";
+import { useSiteImages } from "@/contexts/site-images-context";
+import { useStats } from "@/contexts/stats-context";
 import {
   Trash2,
   Plus,
@@ -40,10 +42,14 @@ export default function AdminDashboardPage() {
     loading: projectsLoading,
   } = useProjects();
   const { testimonials, addTestimonial, deleteTestimonial } = useTestimonials();
+  const { siteImages, getSiteImagesByCategory, addSiteImage, deleteSiteImage } =
+    useSiteImages();
+  const { stats, updateStat, loading: statsLoading } = useStats();
 
   const [isVerifying, setIsVerifying] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState("projects");
+  const [isUploading, setIsUploading] = useState(false);
 
   // Project states
   const [showAddProject, setShowAddProject] = useState(false);
@@ -101,13 +107,7 @@ export default function AdminDashboardPage() {
   });
 
   // Stats states
-  const [stats, setStats] = useState([
-    { id: 1, label: "Projects Completed", value: "250+", editable: false },
-    { id: 2, label: "Happy Clients", value: "150+", editable: false },
-    { id: 3, label: "Years Experience", value: "15+", editable: false },
-    { id: 4, label: "Design Awards", value: "25+", editable: false },
-  ]);
-  const [editingStat, setEditingStat] = useState<number | null>(null);
+  const [editingStat, setEditingStat] = useState<string | null>(null);
   const [editStatValue, setEditStatValue] = useState({ label: "", value: "" });
 
   // About section state
@@ -162,6 +162,19 @@ export default function AdminDashboardPage() {
   const [heroImages, setHeroImages] = useState<string[]>([]);
   const [aboutImage, setAboutImage] = useState("");
   const [logoImage, setLogoImage] = useState("");
+
+  // Site images states
+  const [activeImageCategory, setActiveImageCategory] = useState("hero");
+  const [showAddImage, setShowAddImage] = useState(false);
+  const [newSiteImage, setNewSiteImage] = useState({
+    category: "hero",
+    section: "main",
+    title: "",
+    image: "",
+    altText: "",
+    order: 0,
+    variant: "", // for logo: 'light' or 'dark'
+  });
 
   // Loading state for project operations
   const [isSavingProject, setIsSavingProject] = useState(false);
@@ -537,15 +550,19 @@ export default function AdminDashboardPage() {
   };
 
   const handleEditStat = (stat: any) => {
-    setEditingStat(stat.id);
+    setEditingStat(stat._id);
     setEditStatValue({ label: stat.label, value: stat.value });
   };
 
-  const handleSaveStat = () => {
-    setStats(
-      stats.map((s) => (s.id === editingStat ? { ...s, ...editStatValue } : s))
-    );
-    setEditingStat(null);
+  const handleSaveStat = async () => {
+    if (!editingStat) return;
+    try {
+      await updateStat(editingStat, editStatValue);
+      setEditingStat(null);
+    } catch (error) {
+      console.error("Failed to update stat:", error);
+      alert("Failed to update stat. Please try again.");
+    }
   };
 
   const handleSaveAbout = () => {
@@ -585,6 +602,49 @@ export default function AdminDashboardPage() {
   const handleSignOut = async () => {
     localStorage.removeItem("token");
     await signOut({ callbackUrl: "/" });
+  };
+
+  const handleAddSiteImage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isUploading) return; // Prevent duplicate submissions
+
+    setIsUploading(true);
+    try {
+      // Ensure category matches the active category
+      const imageData = {
+        ...newSiteImage,
+        category: activeImageCategory,
+      };
+      await addSiteImage(imageData as any);
+      setNewSiteImage({
+        category: activeImageCategory,
+        section: "main",
+        title: "",
+        image: "",
+        altText: "",
+        order: 0,
+        variant: "",
+      });
+      setShowAddImage(false);
+    } catch (error) {
+      console.error("Error adding site image:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSiteImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setNewSiteImage((prev) => ({
+          ...prev,
+          image: e.target?.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   if (status === "loading" || isVerifying) {
@@ -1587,180 +1647,20 @@ export default function AdminDashboardPage() {
 
         {/* IMAGES TAB */}
         {activeTab === "images" && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Manage Images</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* Sidebar */}
-              <div className="bg-white rounded-lg shadow p-4 space-y-2">
-                <h3 className="font-semibold text-gray-900 mb-3">
-                  Image Sections
-                </h3>
-                {(
-                  [
-                    { id: "hero", label: "Hero Carousel", icon: "🏠" },
-                    { id: "about", label: "About", icon: "👥" },
-                    { id: "services", label: "Services", icon: "⚙️" },
-                    { id: "logo", label: "Logo", icon: "🎨" },
-                  ] as const
-                ).map((section) => (
-                  <button
-                    key={section.id}
-                    onClick={() => setImageSection(section.id)}
-                    className={`w-full text-left p-3 rounded-lg transition-all ${
-                      imageSection === section.id
-                        ? "bg-amber-50 border-2 border-amber-600"
-                        : "bg-gray-50 hover:bg-gray-100"
-                    }`}
-                  >
-                    <span className="text-2xl mr-2">{section.icon}</span>
-                    {section.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Main Content */}
-              <div className="md:col-span-3 bg-white rounded-lg shadow p-6">
-                {imageSection === "hero" && (
-                  <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-bold">Hero Images</h3>
-                      <Button
-                        onClick={() =>
-                          document.getElementById("hero-upload")?.click()
-                        }
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Images
-                      </Button>
-                      <input
-                        id="hero-upload"
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleHeroImagesUpload}
-                        className="hidden"
-                      />
-                    </div>
-
-                    {heroImages.length === 0 ? (
-                      <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                        <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-500 mb-4">No hero images</p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-3 gap-4">
-                        {heroImages.map((img, idx) => (
-                          <div
-                            key={idx}
-                            className="relative aspect-video rounded-lg overflow-hidden group"
-                          >
-                            <Image
-                              src={img}
-                              alt={`Hero ${idx + 1}`}
-                              fill
-                              className="object-cover"
-                            />
-                            <button
-                              onClick={() =>
-                                setHeroImages(
-                                  heroImages.filter((_, i) => i !== idx)
-                                )
-                              }
-                              className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded opacity-0 group-hover:opacity-100"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {imageSection === "logo" && (
-                  <div>
-                    <h3 className="text-xl font-bold mb-4">Website Logo</h3>
-                    <div className="bg-gray-100 rounded-lg p-8 text-center mb-4">
-                      {logoImage ? (
-                        <Image
-                          src={logoImage}
-                          alt="Logo"
-                          width={200}
-                          height={100}
-                          className="mx-auto"
-                        />
-                      ) : (
-                        <div className="text-gray-500">No logo uploaded</div>
-                      )}
-                    </div>
-                    <Button
-                      onClick={() =>
-                        document.getElementById("logo-upload")?.click()
-                      }
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload Logo
-                    </Button>
-                    <input
-                      id="logo-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoUpload}
-                      className="hidden"
-                    />
-                  </div>
-                )}
-
-                {imageSection === "about" && (
-                  <div>
-                    <h3 className="text-xl font-bold mb-4">About Image</h3>
-                    <div className="bg-gray-100 rounded-lg p-8 text-center mb-4">
-                      {aboutImage ? (
-                        <Image
-                          src={aboutImage}
-                          alt="About"
-                          width={400}
-                          height={300}
-                          className="mx-auto"
-                        />
-                      ) : (
-                        <div className="text-gray-500">
-                          No about image uploaded
-                        </div>
-                      )}
-                    </div>
-                    <Button
-                      onClick={() =>
-                        document.getElementById("about-upload")?.click()
-                      }
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload Image
-                    </Button>
-                    <input
-                      id="about-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleImageUpload(e, (images) =>
-                          setAboutImage(images[0])
-                        )
-                      }
-                      className="hidden"
-                    />
-                  </div>
-                )}
-
-                {imageSection === "services" && (
-                  <div className="text-center py-12">
-                    <Wrench className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-500">Services images coming soon</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <ImagesManagementSection
+            activeCategory={activeImageCategory}
+            setActiveCategory={setActiveImageCategory}
+            siteImages={siteImages}
+            onAddImage={() => setShowAddImage(true)}
+            onDeleteImage={deleteSiteImage}
+            showAddModal={showAddImage}
+            newImage={newSiteImage}
+            setNewImage={setNewSiteImage}
+            handleAddImage={handleAddSiteImage}
+            onCloseModal={() => setShowAddImage(false)}
+            handleSiteImageUpload={handleSiteImageUpload}
+            isUploading={isUploading}
+          />
         )}
 
         {/* STATS TAB */}
@@ -1771,10 +1671,10 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {stats.map((stat) => (
                 <div
-                  key={stat.id}
+                  key={stat._id}
                   className="bg-white rounded-lg shadow-md p-6"
                 >
-                  {editingStat === stat.id ? (
+                  {editingStat === stat._id ? (
                     <div className="space-y-3">
                       <Input
                         label="Label"
@@ -2032,6 +1932,275 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// Images Management Section Component
+function ImagesManagementSection({
+  activeCategory,
+  setActiveCategory,
+  siteImages,
+  onAddImage,
+  onDeleteImage,
+  showAddModal,
+  newImage,
+  setNewImage,
+  handleAddImage,
+  onCloseModal,
+  handleSiteImageUpload,
+  isUploading,
+}: any) {
+  const categories = [
+    {
+      id: "hero",
+      name: "Hero Carousel",
+      icon: "🏠",
+      description: "Homepage slideshow images",
+    },
+    {
+      id: "logo",
+      name: "Logo",
+      icon: "🏷️",
+      description: "Company logo variants",
+    },
+    {
+      id: "about",
+      name: "About Section",
+      icon: "👤",
+      description: "About page images",
+    },
+  ];
+
+  const categoryImages = siteImages.filter(
+    (img: any) => img.category === activeCategory
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Manage Images</h2>
+        <Button
+          onClick={() => {
+            // Set the category to match the active category before opening modal
+            setNewImage((prev: any) => ({ ...prev, category: activeCategory }));
+            onAddImage();
+          }}
+          className="bg-amber-600 hover:bg-amber-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Image
+        </Button>
+      </div>
+
+      {/* Category Navigation */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {categories.map((category) => {
+          // Calculate count for THIS specific category
+          const categoryCount = siteImages.filter(
+            (img: any) => img.category === category.id
+          ).length;
+
+          return (
+            <button
+              key={category.id}
+              onClick={() => setActiveCategory(category.id)}
+              className={`p-4 rounded-lg border-2 text-center transition-all ${
+                activeCategory === category.id
+                  ? "border-amber-600 bg-amber-50 text-amber-800"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <div className="text-2xl mb-2">{category.icon}</div>
+              <h3 className="font-medium mb-1">{category.name}</h3>
+              <p className="text-xs text-gray-600">{category.description}</p>
+              <div className="mt-2 text-xs font-medium">
+                {categoryCount} images
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Images Grid */}
+      <div>
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          {categories.find((c) => c.id === activeCategory)?.icon}
+          {categories.find((c) => c.id === activeCategory)?.name}
+          <span className="text-sm text-gray-500">
+            ({categoryImages.length} images)
+          </span>
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {categoryImages.map((image: any) => (
+            <div
+              key={image._id}
+              className="bg-white rounded-lg shadow overflow-hidden"
+            >
+              <div className="relative h-48 bg-gray-200">
+                <img
+                  src={image.image?.url}
+                  alt={image.altText || image.title}
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  onClick={() => onDeleteImage(image._id)}
+                  className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-4">
+                <h4 className="font-medium text-gray-900">{image.title}</h4>
+                <p className="text-sm text-gray-600">{image.section}</p>
+                {image.variant && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    {image.variant === "light"
+                      ? "🌞 Light Mode"
+                      : "🌙 Dark Mode"}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Order: {image.order}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {categoryImages.length === 0 && (
+          <div className="text-center py-12 text-gray-500">
+            <div className="text-6xl mb-4">📸</div>
+            <p className="text-lg mb-2">No {activeCategory} images yet</p>
+            <p>Click "Add Image" to get started!</p>
+          </div>
+        )}
+      </div>
+
+      {/* Add Image Modal */}
+      {showAddModal && (
+        <Modal
+          onClose={onCloseModal}
+          title={`Add ${
+            categories.find((c) => c.id === activeCategory)?.name
+          } Image`}
+        >
+          <form onSubmit={handleAddImage} className="space-y-4">
+            <Input
+              label="Image Title *"
+              value={newImage.title}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setNewImage((prev: any) => ({ ...prev, title: e.target.value }))
+              }
+              placeholder="e.g., Hero Image 1"
+              required
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Section"
+                value={newImage.section}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setNewImage((prev: any) => ({
+                    ...prev,
+                    section: e.target.value,
+                  }))
+                }
+                placeholder="e.g., main, secondary"
+              />
+              <Input
+                label="Order"
+                type="number"
+                value={newImage.order.toString()}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setNewImage((prev: any) => ({
+                    ...prev,
+                    order: parseInt(e.target.value) || 0,
+                  }))
+                }
+              />
+            </div>
+
+            {/* Variant selector for logo category */}
+            {activeCategory === "logo" && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Logo Variant *
+                </label>
+                <select
+                  value={newImage.variant || ""}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                    setNewImage((prev: any) => ({
+                      ...prev,
+                      variant: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500"
+                  required
+                >
+                  <option value="">Select variant...</option>
+                  <option value="light">Light Mode Logo</option>
+                  <option value="dark">Dark Mode Logo</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Choose which theme this logo should appear in
+                </p>
+              </div>
+            )}
+
+            <Input
+              label="Alt Text"
+              value={newImage.altText}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setNewImage((prev: any) => ({
+                  ...prev,
+                  altText: e.target.value,
+                }))
+              }
+              placeholder="Describe the image for accessibility"
+            />
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Image *</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleSiteImageUpload}
+                className="w-full border rounded p-2"
+                required
+              />
+              {newImage.image && (
+                <div className="mt-2">
+                  <img
+                    src={newImage.image}
+                    alt="Preview"
+                    className="w-32 h-32 object-cover rounded"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button
+                type="button"
+                onClick={onCloseModal}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isUploading}
+                className="bg-amber-600 hover:bg-amber-700 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUploading ? "Adding..." : "Add Image"}
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

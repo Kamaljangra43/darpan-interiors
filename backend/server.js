@@ -45,6 +45,7 @@ app.use("/api/stats", statsRoutes);
 app.use("/api/about", aboutRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/site-settings", siteSettingsRoutes);
+app.use("/api/site-images", require("./routes/siteImageRoutes"));
 
 // Health check
 app.get("/api/health", (req, res) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +55,11 @@ import {
   TestimonialsProvider,
   useTestimonials,
 } from "./contexts/testimonials-context";
+import {
+  SiteImagesProvider,
+  useSiteImages,
+} from "./contexts/site-images-context";
+import { StatsProvider, useStats } from "./contexts/stats-context";
 import SettingsModal from "./components/settings-modal";
 import ConsultationModal from "./components/consultation-modal";
 import ProjectDetailModal from "./components/project-detail-modal";
@@ -72,6 +77,8 @@ function DarpanInteriorsPortfolioContent() {
   const { isDarkMode } = useTheme();
   const { projects, loading: projectsLoading } = useProjects();
   const { testimonials, loading: testimonialsLoading } = useTestimonials();
+  const { getSiteImagesByCategory } = useSiteImages();
+  const { stats } = useStats();
 
   const [activeSection, setActiveSection] = useState("home");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -88,20 +95,81 @@ function DarpanInteriorsPortfolioContent() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isTestimonialPlaying, setIsTestimonialPlaying] = useState(true);
 
+  // Contact form state
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    projectType: "",
+    message: "",
+  });
+  const [formStatus, setFormStatus] = useState<{
+    type: "idle" | "loading" | "success" | "error";
+    message: string;
+  }>({ type: "idle", message: "" });
+
   // Hero carousel state
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
   const heroSectionRef = useRef<HTMLDivElement>(null);
 
-  // Hero images array
-  const heroImages = [
-    "/modern-luxury-living-room-interior-design.jpg",
-    "/elegant-bedroom-interior-design.jpg",
-    "/modern-kitchen.png",
-    "/luxury-bathroom-interior.jpg",
-    "/cozy-living-room.png",
-  ];
+  // Get dynamic hero images from context, fallback to static images
+  const dynamicHeroImages = getSiteImagesByCategory("hero", "main");
+  const heroImages =
+    dynamicHeroImages.length > 0
+      ? dynamicHeroImages
+          .map((img: any) => img.image?.url || img.image)
+          .filter(Boolean)
+      : [
+          "/modern-luxury-living-room-interior-design.jpg",
+          "/elegant-bedroom-interior-design.jpg",
+          "/modern-kitchen.png",
+          "/luxury-bathroom-interior.jpg",
+          "/cozy-living-room.png",
+        ];
+
+  // Get logo images from context with variant support
+  // Use useMemo to properly re-compute logo when theme changes
+  const logoImage = useMemo(() => {
+    const logoImages = getSiteImagesByCategory("logo", "main");
+
+    // Find logos by variant field
+    const lightLogo = logoImages.find((img: any) => img.variant === "light");
+    const darkLogo = logoImages.find((img: any) => img.variant === "dark");
+
+    // Use the appropriate logo based on theme
+    // Dark mode shows dark logo, light mode shows light logo
+    const selectedLogo = isDarkMode
+      ? darkLogo || logoImages[0] || null
+      : lightLogo || logoImages[0] || null;
+
+    return selectedLogo;
+  }, [isDarkMode, getSiteImagesByCategory]);
+
+  // Get dynamic about images from context, fallback to static images
+  const dynamicAboutImages = getSiteImagesByCategory("about", "main");
+  const aboutImages =
+    dynamicAboutImages.length > 0
+      ? dynamicAboutImages
+          .sort((a: any, b: any) => a.order - b.order)
+          .map((img: any) => ({
+            url: img.image?.url || img.image,
+            alt: img.altText || img.title,
+          }))
+      : [
+          {
+            url: "/elegant-bedroom-interior-design.jpg",
+            alt: "Elegant bedroom interior",
+          },
+          { url: "/modern-kitchen.png", alt: "Modern kitchen design" },
+          {
+            url: "/luxury-bathroom-interior.jpg",
+            alt: "Luxury bathroom interior",
+          },
+          { url: "/cozy-living-room.png", alt: "Cozy living room design" },
+        ];
 
   // Testimonials are now loaded from context
 
@@ -180,6 +248,67 @@ function DarpanInteriorsPortfolioContent() {
     setIsAutoPlaying(false);
     setCurrentImageIndex(index);
     setTimeout(() => setIsAutoPlaying(true), 8000);
+  };
+
+  // Contact form handlers
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormStatus({ type: "loading", message: "Sending your message..." });
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send message");
+      }
+
+      setFormStatus({
+        type: "success",
+        message:
+          data.message ||
+          "Thank you! We've received your message and will get back to you soon.",
+      });
+
+      // Reset form after successful submission
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        projectType: "",
+        message: "",
+      });
+
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        setFormStatus({ type: "idle", message: "" });
+      }, 5000);
+    } catch (error: any) {
+      setFormStatus({
+        type: "error",
+        message: error.message || "Failed to send message. Please try again.",
+      });
+
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setFormStatus({ type: "idle", message: "" });
+      }, 5000);
+    }
   };
 
   // Filter projects
@@ -273,32 +402,7 @@ function DarpanInteriorsPortfolioContent() {
     },
   ];
 
-  const stats = [
-    {
-      icon: Users,
-      label: "Happy Clients",
-      value: "150+",
-      description: "Satisfied customers worldwide",
-    },
-    {
-      icon: Award,
-      label: "Years Experience",
-      value: "12+",
-      description: "In interior design industry",
-    },
-    {
-      icon: Briefcase,
-      label: "Projects Completed",
-      value: "200+",
-      description: "Successful transformations",
-    },
-    {
-      icon: TrendingUp,
-      label: "Client Satisfaction",
-      value: "98%",
-      description: "Positive feedback rate",
-    },
-  ];
+  // Stats are now loaded from context/database
 
   const navigationItems = [
     { id: "home", label: "Home", icon: Home },
@@ -352,24 +456,42 @@ function DarpanInteriorsPortfolioContent() {
             {/* Logo */}
             <button
               onClick={() => scrollToSection("home")}
-              className="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer"
+              className="flex items-center space-x-4 hover:opacity-80 transition-opacity cursor-pointer"
             >
-              <div
-                className={`w-10 h-10 ${
-                  isDarkMode
-                    ? "bg-gradient-to-br from-amber-400 to-orange-500"
-                    : "bg-gradient-to-br from-amber-500 to-orange-600"
-                } rounded-lg flex items-center justify-center`}
-              >
-                <Sparkles className="h-6 w-6 text-white" />
-              </div>
-              <div>
+              {/* Logo Image or Icon */}
+              {logoImage ? (
+                <div
+                  className="rounded-xl shadow-md overflow-hidden flex-shrink-0"
+                  style={{ height: "56px", width: "56px" }}
+                >
+                  <img
+                    src={logoImage.image?.url || logoImage.image}
+                    alt={logoImage.altText || "Darpan Interiors"}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div
+                  className={`flex-shrink-0 ${
+                    isDarkMode
+                      ? "bg-gradient-to-br from-amber-400 to-orange-500"
+                      : "bg-gradient-to-br from-amber-500 to-orange-600"
+                  } rounded-xl flex items-center justify-center shadow-md`}
+                  style={{ height: "56px", width: "56px" }}
+                >
+                  <Sparkles className="h-8 w-8 text-white" />
+                </div>
+              )}
+
+              {/* Company Name - Always Show */}
+              <div className="min-w-0">
                 <h1
-                  className={`text-xl font-bold ${
+                  className={`text-lg md:text-xl font-bold tracking-wider ${
                     isDarkMode ? "text-white" : "text-gray-900"
                   }`}
+                  style={{ fontFamily: "var(--font-playfair)" }}
                 >
-                  Darpan Interiors
+                  DARPAN INTERIORS
                 </h1>
                 <p
                   className={`text-xs ${
@@ -589,9 +711,36 @@ function DarpanInteriorsPortfolioContent() {
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
                 {stats.map((stat, index) => {
-                  const Icon = stat.icon;
+                  // Map icon names to Lucide components
+                  const getIcon = (label: string) => {
+                    const lowerLabel = label.toLowerCase();
+                    if (
+                      lowerLabel.includes("project") ||
+                      lowerLabel.includes("completed")
+                    )
+                      return Briefcase;
+                    if (
+                      lowerLabel.includes("client") ||
+                      lowerLabel.includes("happy")
+                    )
+                      return Users;
+                    if (
+                      lowerLabel.includes("year") ||
+                      lowerLabel.includes("experience")
+                    )
+                      return Award;
+                    if (
+                      lowerLabel.includes("award") ||
+                      lowerLabel.includes("design")
+                    )
+                      return TrendingUp;
+                    return CheckCircle; // Default icon
+                  };
+
+                  const Icon = getIcon(stat.label);
+
                   return (
-                    <div key={index} className="text-center">
+                    <div key={stat._id || index} className="text-center">
                       <div
                         className={`w-12 h-12 ${
                           isDarkMode
@@ -630,7 +779,7 @@ function DarpanInteriorsPortfolioContent() {
               <div className="relative z-10 overflow-hidden rounded-2xl">
                 {/* Image Container */}
                 <div className="relative w-full h-[500px]">
-                  {heroImages.map((image, index) => (
+                  {heroImages.map((image: string, index: number) => (
                     <div
                       key={index}
                       className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
@@ -673,7 +822,7 @@ function DarpanInteriorsPortfolioContent() {
                 {/* Slide Indicators */}
                 {heroImages.length > 1 && (
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex space-x-2">
-                    {heroImages.map((_, index) => (
+                    {heroImages.map((_: string, index: number) => (
                       <button
                         key={index}
                         onClick={() => goToSlide(index)}
@@ -868,34 +1017,30 @@ function DarpanInteriorsPortfolioContent() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-4">
                 <img
-                  src="/elegant-bedroom-interior-design.jpg"
-                  alt="Elegant bedroom interior"
-                  className="rounded-xl shadow-lg w-full h-auto cursor-pointer hover:shadow-xl transition-shadow"
-                  onClick={() =>
-                    setSelectedImage("/elegant-bedroom-interior-design.jpg")
-                  }
+                  src={aboutImages[0]?.url}
+                  alt={aboutImages[0]?.alt}
+                  className="rounded-xl shadow-lg w-full h-64 object-cover cursor-pointer hover:shadow-xl transition-shadow"
+                  onClick={() => setSelectedImage(aboutImages[0]?.url)}
                 />
                 <img
-                  src="/modern-kitchen.png"
-                  alt="Modern kitchen design"
-                  className="rounded-xl shadow-lg w-full h-auto cursor-pointer hover:shadow-xl transition-shadow"
-                  onClick={() => setSelectedImage("/modern-kitchen.png")}
+                  src={aboutImages[1]?.url}
+                  alt={aboutImages[1]?.alt}
+                  className="rounded-xl shadow-lg w-full h-64 object-cover cursor-pointer hover:shadow-xl transition-shadow"
+                  onClick={() => setSelectedImage(aboutImages[1]?.url)}
                 />
               </div>
               <div className="space-y-4 pt-8">
                 <img
-                  src="/luxury-bathroom-interior.jpg"
-                  alt="Luxury bathroom interior"
-                  className="rounded-xl shadow-lg w-full h-auto cursor-pointer hover:shadow-xl transition-shadow"
-                  onClick={() =>
-                    setSelectedImage("/luxury-bathroom-interior.jpg")
-                  }
+                  src={aboutImages[2]?.url}
+                  alt={aboutImages[2]?.alt}
+                  className="rounded-xl shadow-lg w-full h-64 object-cover cursor-pointer hover:shadow-xl transition-shadow"
+                  onClick={() => setSelectedImage(aboutImages[2]?.url)}
                 />
                 <img
-                  src="/cozy-living-room.png"
-                  alt="Cozy living room design"
-                  className="rounded-xl shadow-lg w-full h-auto cursor-pointer hover:shadow-xl transition-shadow"
-                  onClick={() => setSelectedImage("/cozy-living-room.png")}
+                  src={aboutImages[3]?.url}
+                  alt={aboutImages[3]?.alt}
+                  className="rounded-xl shadow-lg w-full h-64 object-cover cursor-pointer hover:shadow-xl transition-shadow"
+                  onClick={() => setSelectedImage(aboutImages[3]?.url)}
                 />
               </div>
             </div>
@@ -1789,7 +1934,30 @@ function DarpanInteriorsPortfolioContent() {
               } shadow-xl`}
             >
               <CardContent className="p-8">
-                <form className="space-y-6">
+                <form className="space-y-6" onSubmit={handleFormSubmit}>
+                  {/* Status Message */}
+                  {formStatus.type !== "idle" && (
+                    <div
+                      className={`p-4 rounded-lg ${
+                        formStatus.type === "success"
+                          ? isDarkMode
+                            ? "bg-green-900/20 border border-green-500/50 text-green-300"
+                            : "bg-green-50 border border-green-200 text-green-800"
+                          : formStatus.type === "error"
+                          ? isDarkMode
+                            ? "bg-red-900/20 border border-red-500/50 text-red-300"
+                            : "bg-red-50 border border-red-200 text-red-800"
+                          : isDarkMode
+                          ? "bg-blue-900/20 border border-blue-500/50 text-blue-300"
+                          : "bg-blue-50 border border-blue-200 text-blue-800"
+                      }`}
+                    >
+                      <p className="text-sm font-medium">
+                        {formStatus.message}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label
@@ -1798,11 +1966,15 @@ function DarpanInteriorsPortfolioContent() {
                           isDarkMode ? "text-gray-200" : "text-gray-700"
                         }`}
                       >
-                        First Name
+                        First Name <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="firstName"
+                        value={formData.firstName}
+                        onChange={handleFormChange}
                         placeholder="John"
+                        required
+                        disabled={formStatus.type === "loading"}
                         className={`${
                           isDarkMode
                             ? "bg-gray-800/50 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-amber-500"
@@ -1821,7 +1993,10 @@ function DarpanInteriorsPortfolioContent() {
                       </Label>
                       <Input
                         id="lastName"
+                        value={formData.lastName}
+                        onChange={handleFormChange}
                         placeholder="Doe"
+                        disabled={formStatus.type === "loading"}
                         className={`${
                           isDarkMode
                             ? "bg-gray-800/50 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-amber-500"
@@ -1838,12 +2013,16 @@ function DarpanInteriorsPortfolioContent() {
                         isDarkMode ? "text-gray-200" : "text-gray-700"
                       }`}
                     >
-                      Email Address
+                      Email Address <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="email"
                       type="email"
+                      value={formData.email}
+                      onChange={handleFormChange}
                       placeholder="john@example.com"
+                      required
+                      disabled={formStatus.type === "loading"}
                       className={`${
                         isDarkMode
                           ? "bg-gray-800/50 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-amber-500"
@@ -1864,7 +2043,10 @@ function DarpanInteriorsPortfolioContent() {
                     <Input
                       id="phone"
                       type="tel"
+                      value={formData.phone}
+                      onChange={handleFormChange}
                       placeholder="+1 (555) 123-4567"
+                      disabled={formStatus.type === "loading"}
                       className={`${
                         isDarkMode
                           ? "bg-gray-800/50 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-amber-500"
@@ -1875,16 +2057,19 @@ function DarpanInteriorsPortfolioContent() {
 
                   <div className="space-y-2">
                     <Label
-                      htmlFor="subject"
+                      htmlFor="projectType"
                       className={`text-sm font-medium ${
                         isDarkMode ? "text-gray-200" : "text-gray-700"
                       }`}
                     >
-                      Subject
+                      Project Type
                     </Label>
                     <Input
-                      id="subject"
+                      id="projectType"
+                      value={formData.projectType}
+                      onChange={handleFormChange}
                       placeholder="Interior Design Consultation"
+                      disabled={formStatus.type === "loading"}
                       className={`${
                         isDarkMode
                           ? "bg-gray-800/50 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-amber-500"
@@ -1900,30 +2085,53 @@ function DarpanInteriorsPortfolioContent() {
                         isDarkMode ? "text-gray-200" : "text-gray-700"
                       }`}
                     >
-                      Message
+                      Message <span className="text-red-500">*</span>
                     </Label>
                     <Textarea
                       id="message"
+                      value={formData.message}
+                      onChange={handleFormChange}
                       placeholder="Tell us about your project and vision..."
                       rows={5}
+                      required
+                      minLength={10}
+                      maxLength={5000}
+                      disabled={formStatus.type === "loading"}
                       className={`${
                         isDarkMode
                           ? "bg-gray-800/50 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-amber-500"
                           : "bg-gray-50/50 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-amber-500"
                       }`}
                     />
+                    <p
+                      className={`text-xs ${
+                        isDarkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      {formData.message.length}/5000 characters
+                    </p>
                   </div>
 
                   <Button
                     type="submit"
+                    disabled={formStatus.type === "loading"}
                     className={`w-full ${
                       isDarkMode
                         ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
                         : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-                    } text-white`}
+                    } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
-                    <Mail className="h-4 w-4 mr-2" />
-                    Send Message
+                    {formStatus.type === "loading" ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Send Message
+                      </>
+                    )}
                   </Button>
                 </form>
               </CardContent>
@@ -2142,22 +2350,34 @@ function DarpanInteriorsPortfolioContent() {
                 onClick={() => scrollToSection("home")}
                 className="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer"
               >
-                <div
-                  className={`w-10 h-10 ${
-                    isDarkMode
-                      ? "bg-gradient-to-br from-amber-400 to-orange-500"
-                      : "bg-gradient-to-br from-amber-500 to-orange-600"
-                  } rounded-lg flex items-center justify-center`}
-                >
-                  <Sparkles className="h-6 w-6 text-white" />
-                </div>
+                {/* Logo Image or Icon */}
+                {logoImage ? (
+                  <div className="h-16 w-16 rounded-lg shadow-md overflow-hidden flex-shrink-0">
+                    <img
+                      src={logoImage.image?.url || logoImage.image}
+                      alt={logoImage.altText || "Darpan Interiors"}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className={`w-16 h-16 p-2 ${
+                      isDarkMode
+                        ? "bg-gradient-to-br from-amber-400 to-orange-500"
+                        : "bg-gradient-to-br from-amber-500 to-orange-600"
+                    } rounded-lg flex items-center justify-center`}
+                  >
+                    <Sparkles className="h-7 w-7 text-white" />
+                  </div>
+                )}
                 <div>
                   <h3
-                    className={`text-lg font-bold ${
+                    className={`text-lg font-bold tracking-wider ${
                       isDarkMode ? "text-white" : "text-gray-900"
                     }`}
+                    style={{ fontFamily: "var(--font-playfair)" }}
                   >
-                    Darpan Interiors
+                    DARPAN INTERIORS
                   </h3>
                 </div>
               </button>
@@ -2418,9 +2638,13 @@ export default function DarpanInteriorsPortfolio() {
   return (
     <ProjectsProvider>
       <TestimonialsProvider>
-        <ThemeProvider>
-          <DarpanInteriorsPortfolioContent />
-        </ThemeProvider>
+        <SiteImagesProvider>
+          <StatsProvider>
+            <ThemeProvider>
+              <DarpanInteriorsPortfolioContent />
+            </ThemeProvider>
+          </StatsProvider>
+        </SiteImagesProvider>
       </TestimonialsProvider>
     </ProjectsProvider>
   );

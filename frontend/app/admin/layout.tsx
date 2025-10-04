@@ -6,6 +6,7 @@ import { TestimonialsProvider } from "@/contexts/testimonials-context";
 import { StatsProvider } from "@/contexts/stats-context";
 import { ServicesProvider } from "@/contexts/services-context";
 import { AboutProvider } from "@/contexts/about-context";
+import { SiteImagesProvider } from "@/contexts/site-images-context";
 
 export default function AdminLayout({
   children,
@@ -18,7 +19,9 @@ export default function AdminLayout({
         <TestimonialsProvider>
           <StatsProvider>
             <ServicesProvider>
-              <AboutProvider>{children}</AboutProvider>
+              <AboutProvider>
+                <SiteImagesProvider>{children}</SiteImagesProvider>
+              </AboutProvider>
             </ServicesProvider>
           </StatsProvider>
         </TestimonialsProvider>
