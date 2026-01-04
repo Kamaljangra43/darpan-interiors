@@ -2385,9 +2385,9 @@ function DarpanInteriorsPortfolioContent() {
                           isDarkMode ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        123 Design Street
+                        GF No 4, 2nd Main, Kogilu Main Road
                         <br />
-                        Beverly Hills, CA 90210
+                        Srinivasapura, Yelahanka, Bengaluru North - 560064
                       </p>
                       <p
                         className={`text-sm ${
@@ -2698,9 +2698,9 @@ function DarpanInteriorsPortfolioContent() {
                     isDarkMode ? "text-gray-400" : "text-gray-600"
                   }`}
                 >
-                  123 Design Street
+                  GF No 4, 2nd Main, Kogilu Main Road
                   <br />
-                  Beverly Hills, CA 90210
+                  Srinivasapura, Yelahanka, Bengaluru North - 560064
                 </p>
                 <p
                   className={`text-sm ${
