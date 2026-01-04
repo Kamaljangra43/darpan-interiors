@@ -43,9 +43,11 @@ const createAdmin = async () => {
         const name = adminEmail.includes("kamalsingh")
           ? "Kamal Jangra"
           : "Darpan Admin";
+        const username = adminEmail.split("@")[0]; // Generate username from email
         const newAdmin = await User.create({
           name: name,
           email: adminEmail,
+          username: username,
           isAdmin: true,
         });
         console.log("✅ Admin user created:", adminEmail);
