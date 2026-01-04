@@ -25,7 +25,7 @@ const createAdmin = async () => {
     // Admin emails to create
     const adminEmails = [
       "kamalsinghjangra106@gmail.com",
-      "darpaninteriors1@gmail.com"
+      "darpaninteriors1@gmail.com",
     ];
 
     for (const adminEmail of adminEmails) {
@@ -40,7 +40,9 @@ const createAdmin = async () => {
         console.log("   User ID:", existingAdmin._id);
         console.log("   Is Admin:", existingAdmin.isAdmin);
       } else {
-        const name = adminEmail.includes("kamalsingh") ? "Kamal Jangra" : "Darpan Admin";
+        const name = adminEmail.includes("kamalsingh")
+          ? "Kamal Jangra"
+          : "Darpan Admin";
         const newAdmin = await User.create({
           name: name,
           email: adminEmail,
@@ -59,9 +61,7 @@ const createAdmin = async () => {
       console.log("   Is Admin:", verifyUser.isAdmin);
     }
 
-    console.log(
-      "\n🎉 Success! All admin accounts configured!"
-    );
+    console.log("\n🎉 Success! All admin accounts configured!");
 
     await mongoose.connection.close();
     console.log("📪 MongoDB connection closed");

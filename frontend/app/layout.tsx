@@ -13,7 +13,8 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "Darpan Interiors - Transforming Spaces",
-  description: "Professional interior design and renovation services. Transform your space with expert craftsmanship and innovative design solutions.",
+  description:
+    "Professional interior design and renovation services. Transform your space with expert craftsmanship and innovative design solutions.",
   generator: "Next.js",
 };
 
