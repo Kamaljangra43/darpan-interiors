@@ -2315,7 +2315,7 @@ function DarpanInteriorsPortfolioContent() {
                           isDarkMode ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        info@darpaninteriors.com
+                        surjit@darpaninteriors.com
                       </p>
                       <p
                         className={`text-sm ${
@@ -2350,14 +2350,14 @@ function DarpanInteriorsPortfolioContent() {
                           isDarkMode ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        +1 (555) 123-4567
+                        +91 9535890510
                       </p>
                       <p
                         className={`text-sm ${
                           isDarkMode ? "text-gray-500" : "text-gray-500"
                         }`}
                       >
-                        Mon-Fri 9AM-6PM PST
+                        Mon-Fri 9AM-6PM IST
                       </p>
                     </div>
                   </div>
@@ -2679,14 +2679,14 @@ function DarpanInteriorsPortfolioContent() {
                     isDarkMode ? "text-gray-400" : "text-gray-600"
                   }`}
                 >
-                  +1 (555) 123-4567
+                  +91 9535890510
                 </p>
                 <p
                   className={`text-sm ${
                     isDarkMode ? "text-gray-400" : "text-gray-600"
                   }`}
                 >
-                  info@darpaninteriors.com
+                  surjit@darpaninteriors.com
                 </p>
               </div>
             </div>
