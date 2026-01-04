@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     // Send email using Resend
     const emailResponse = await resend.emails.send({
-      from: "Darpan Interiors <onboarding@resend.dev>", // Using Resend's default domain
+      from: "Darpan Interiors <noreply@darpaninteriors.com>",
       to: ["surjit@darpaninteriors.com"],
       subject: `New Consultation Booking - ${name}`,
       html: `

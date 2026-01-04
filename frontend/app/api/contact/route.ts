@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     // NOTE: In test mode (without verified domain), Resend only allows sending to YOUR email
     // Send notification to admin
     const adminEmailResponse = await resend.emails.send({
-      from: "Darpan Interiors <onboarding@resend.dev>",
+      from: "Darpan Interiors <noreply@darpaninteriors.com>",
       to: ["surjit@darpaninteriors.com"],
       replyTo: email, // Allow direct reply to the customer
       subject: `🏠 New Contact Form Submission - ${firstName} ${
