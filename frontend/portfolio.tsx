@@ -2421,7 +2421,11 @@ function DarpanInteriorsPortfolioContent() {
                         : "border-gray-300 text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <a href="https://www.instagram.com/surjit802024/" target="_blank" rel="noopener noreferrer">
+                    <a
+                      href="https://www.instagram.com/surjit802024/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       <Instagram className="h-5 w-5" />
                     </a>
                   </Button>
@@ -2446,7 +2450,11 @@ function DarpanInteriorsPortfolioContent() {
                         : "border-gray-300 text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <a href="https://www.linkedin.com/in/surjit-singh-a1b9a4171/" target="_blank" rel="noopener noreferrer">
+                    <a
+                      href="https://www.linkedin.com/in/surjit-singh-a1b9a4171/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       <Linkedin className="h-5 w-5" />
                     </a>
                   </Button>
@@ -2550,7 +2558,11 @@ function DarpanInteriorsPortfolioContent() {
                       : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
                   }`}
                 >
-                  <a href="https://www.instagram.com/surjit802024/" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://www.instagram.com/surjit802024/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Instagram className="h-5 w-5" />
                   </a>
                 </Button>
@@ -2575,7 +2587,11 @@ function DarpanInteriorsPortfolioContent() {
                       : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
                   }`}
                 >
-                  <a href="https://www.linkedin.com/in/surjit-singh-a1b9a4171/" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://www.linkedin.com/in/surjit-singh-a1b9a4171/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Linkedin className="h-5 w-5" />
                   </a>
                 </Button>

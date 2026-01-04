@@ -12,10 +12,63 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Darpan Interiors - Transforming Spaces",
+  metadataBase: new URL("https://www.darpaninteriors.com"),
+  title: {
+    default: "Darpan Interiors - Professional Interior Design Services",
+    template: "%s | Darpan Interiors",
+  },
   description:
-    "Professional interior design and renovation services. Transform your space with expert craftsmanship and innovative design solutions.",
-  generator: "Next.js",
+    "Darpan Interiors offers premium interior design and renovation services. Transform your residential and commercial spaces with expert craftsmanship, innovative design solutions, and personalized attention. Contact us at +91 9535890510.",
+  keywords: [
+    "Darpan Interiors",
+    "interior design",
+    "home renovation",
+    "office interior design",
+    "interior designer",
+    "residential interior",
+    "commercial interior",
+    "space transformation",
+    "interior design services",
+    "professional interior designer",
+  ],
+  authors: [{ name: "Darpan Interiors" }],
+  creator: "Darpan Interiors",
+  publisher: "Darpan Interiors",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    title: "Darpan Interiors - Professional Interior Design Services",
+    description:
+      "Transform your spaces with Darpan Interiors. Expert interior design and renovation services for homes and offices.",
+    url: "https://www.darpaninteriors.com",
+    siteName: "Darpan Interiors",
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Darpan Interiors - Professional Interior Design Services",
+    description:
+      "Transform your spaces with Darpan Interiors. Expert interior design and renovation services.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    // Add your Google Search Console verification code here once you get it
+    // google: "your-verification-code",
+  },
 };
 
 export default function RootLayout({
