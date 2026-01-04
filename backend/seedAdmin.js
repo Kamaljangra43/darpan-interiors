@@ -22,39 +22,45 @@ const createAdmin = async () => {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("✅ Connected to MongoDB successfully!\n");
 
-    // IMPORTANT: Replace with your Google email
-    const adminEmail = "kamalsinghjangra106@gmail.com";
+    // Admin emails to create
+    const adminEmails = [
+      "kamalsinghjangra106@gmail.com",
+      "darpaninteriors1@gmail.com"
+    ];
 
-    console.log(`🔍 Looking for user: ${adminEmail}`);
+    for (const adminEmail of adminEmails) {
+      console.log(`\n🔍 Looking for user: ${adminEmail}`);
 
-    const existingAdmin = await User.findOne({ email: adminEmail });
+      const existingAdmin = await User.findOne({ email: adminEmail });
 
-    if (existingAdmin) {
-      existingAdmin.isAdmin = true;
-      await existingAdmin.save();
-      console.log("✅ Admin user updated:", adminEmail);
-      console.log("   User ID:", existingAdmin._id);
-      console.log("   Is Admin:", existingAdmin.isAdmin);
-    } else {
-      const newAdmin = await User.create({
-        name: "Kamal Jangra",
-        email: adminEmail,
-        isAdmin: true,
-      });
-      console.log("✅ Admin user created:", adminEmail);
-      console.log("   User ID:", newAdmin._id);
-      console.log("   Is Admin:", newAdmin.isAdmin);
+      if (existingAdmin) {
+        existingAdmin.isAdmin = true;
+        await existingAdmin.save();
+        console.log("✅ Admin user updated:", adminEmail);
+        console.log("   User ID:", existingAdmin._id);
+        console.log("   Is Admin:", existingAdmin.isAdmin);
+      } else {
+        const name = adminEmail.includes("kamalsingh") ? "Kamal Jangra" : "Darpan Admin";
+        const newAdmin = await User.create({
+          name: name,
+          email: adminEmail,
+          isAdmin: true,
+        });
+        console.log("✅ Admin user created:", adminEmail);
+        console.log("   User ID:", newAdmin._id);
+        console.log("   Is Admin:", newAdmin.isAdmin);
+      }
+
+      // Verify
+      const verifyUser = await User.findOne({ email: adminEmail });
+      console.log("\n🔍 Verification:");
+      console.log("   Email:", verifyUser.email);
+      console.log("   Name:", verifyUser.name);
+      console.log("   Is Admin:", verifyUser.isAdmin);
     }
 
-    // Verify
-    const verifyUser = await User.findOne({ email: adminEmail });
-    console.log("\n🔍 Verification:");
-    console.log("   Email:", verifyUser.email);
-    console.log("   Name:", verifyUser.name);
-    console.log("   Is Admin:", verifyUser.isAdmin);
-
     console.log(
-      "\n🎉 Success! You can now login with this Google account as admin!"
+      "\n🎉 Success! All admin accounts configured!"
     );
 
     await mongoose.connection.close();
