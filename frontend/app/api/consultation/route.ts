@@ -25,11 +25,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email using Resend
-    // NOTE: In test mode (without verified domain), Resend only allows sending to YOUR email
     const emailResponse = await resend.emails.send({
       from: "Darpan Interiors <onboarding@resend.dev>", // Using Resend's default domain
-      to: ["kamalsinghjangra106@gmail.com"], // TESTING: Your Resend account email
-      // to: [process.env.ADMIN_EMAIL || "info@darpaninteriors.com"], // PRODUCTION: Uncomment after domain verification
+      to: ["surjit@darpaninteriors.com"],
       subject: `New Consultation Booking - ${name}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

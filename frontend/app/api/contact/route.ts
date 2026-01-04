@@ -47,11 +47,10 @@ export async function POST(request: NextRequest) {
 
     // Send notification email to admin (your GoDaddy email)
     // NOTE: In test mode (without verified domain), Resend only allows sending to YOUR email
-    // Change to process.env.ADMIN_EMAIL once domain is verified
+    // Send notification to admin
     const adminEmailResponse = await resend.emails.send({
-      from: "Darpan Interiors <onboarding@resend.dev>", // Change this to your verified domain email once set up
-      to: ["kamalsinghjangra106@gmail.com"], // TESTING: Your Resend account email
-      // to: [process.env.ADMIN_EMAIL || "info@darpaninteriors.com"], // PRODUCTION: Uncomment after domain verification
+      from: "Darpan Interiors <onboarding@resend.dev>",
+      to: ["surjit@darpaninteriors.com"],
       replyTo: email, // Allow direct reply to the customer
       subject: `🏠 New Contact Form Submission - ${firstName} ${
         lastName || ""
