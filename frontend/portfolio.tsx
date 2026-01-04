@@ -2412,6 +2412,7 @@ function DarpanInteriorsPortfolioContent() {
                 </h4>
                 <div className="flex space-x-4">
                   <Button
+                    asChild
                     variant="outline"
                     size="icon"
                     className={`${
@@ -2420,7 +2421,9 @@ function DarpanInteriorsPortfolioContent() {
                         : "border-gray-300 text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <Instagram className="h-5 w-5" />
+                    <a href="https://www.instagram.com/surjit802024/" target="_blank" rel="noopener noreferrer">
+                      <Instagram className="h-5 w-5" />
+                    </a>
                   </Button>
                   <Button
                     variant="outline"
@@ -2434,6 +2437,7 @@ function DarpanInteriorsPortfolioContent() {
                     <Facebook className="h-5 w-5" />
                   </Button>
                   <Button
+                    asChild
                     variant="outline"
                     size="icon"
                     className={`${
@@ -2442,7 +2446,9 @@ function DarpanInteriorsPortfolioContent() {
                         : "border-gray-300 text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <Linkedin className="h-5 w-5" />
+                    <a href="https://www.linkedin.com/in/surjit-singh-a1b9a4171/" target="_blank" rel="noopener noreferrer">
+                      <Linkedin className="h-5 w-5" />
+                    </a>
                   </Button>
                 </div>
               </div>
@@ -2535,6 +2541,7 @@ function DarpanInteriorsPortfolioContent() {
               </p>
               <div className="flex space-x-3">
                 <Button
+                  asChild
                   variant="ghost"
                   size="icon"
                   className={`${
@@ -2543,7 +2550,9 @@ function DarpanInteriorsPortfolioContent() {
                       : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
                   }`}
                 >
-                  <Instagram className="h-5 w-5" />
+                  <a href="https://www.instagram.com/surjit802024/" target="_blank" rel="noopener noreferrer">
+                    <Instagram className="h-5 w-5" />
+                  </a>
                 </Button>
                 <Button
                   variant="ghost"
@@ -2557,6 +2566,7 @@ function DarpanInteriorsPortfolioContent() {
                   <Facebook className="h-5 w-5" />
                 </Button>
                 <Button
+                  asChild
                   variant="ghost"
                   size="icon"
                   className={`${
@@ -2565,7 +2575,9 @@ function DarpanInteriorsPortfolioContent() {
                       : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
                   }`}
                 >
-                  <Linkedin className="h-5 w-5" />
+                  <a href="https://www.linkedin.com/in/surjit-singh-a1b9a4171/" target="_blank" rel="noopener noreferrer">
+                    <Linkedin className="h-5 w-5" />
+                  </a>
                 </Button>
               </div>
             </div>
