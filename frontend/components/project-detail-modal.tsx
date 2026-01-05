@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +36,6 @@ function FeaturedSlideshow({
   isDarkMode: boolean;
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const touchStartRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!autoPlay || featuredImages.length <= 1) return;
@@ -48,37 +47,8 @@ function FeaturedSlideshow({
     return () => clearInterval(interval);
   }, [featuredImages.length, autoPlay]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartRef.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-
-    const deltaX = e.changedTouches[0].clientX - touchStartRef.current;
-
-    // Swipe left/right with at least 50px movement
-    if (Math.abs(deltaX) > 50) {
-      if (deltaX > 0) {
-        // Swipe right - go to previous
-        setCurrentIndex(
-          (prev) => (prev - 1 + featuredImages.length) % featuredImages.length
-        );
-      } else {
-        // Swipe left - go to next
-        setCurrentIndex((prev) => (prev + 1) % featuredImages.length);
-      }
-    }
-
-    touchStartRef.current = null;
-  };
-
   return (
-    <div 
-      className="featured-slideshow relative h-80 rounded-lg overflow-hidden group"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="featured-slideshow relative h-80 rounded-lg overflow-hidden group">
       <Image
         src={featuredImages[currentIndex] || "/placeholder.svg"}
         alt="Featured view"
@@ -242,55 +212,6 @@ export default function ProjectDetailModal({
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [imageViewerIndex, setImageViewerIndex] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [pullDistance, setPullDistance] = useState(0);
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  // Handle pull-to-close gesture
-  const handleTouchStart = (e: React.TouchEvent) => {
-    // Only capture touch at the top of the scrollable content
-    if (contentRef.current) {
-      const scrollTop = contentRef.current.scrollTop;
-      if (scrollTop === 0) {
-        touchStartRef.current = {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY,
-        };
-      }
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartRef.current || !contentRef.current) return;
-
-    const deltaY = e.touches[0].clientY - touchStartRef.current.y;
-    const scrollTop = contentRef.current.scrollTop;
-
-    // Only allow pull down when at top of scroll
-    if (deltaY > 0 && scrollTop === 0) {
-      setPullDistance(deltaY);
-      if (containerRef.current) {
-        containerRef.current.style.transform = `translateY(${deltaY}px)`;
-        containerRef.current.style.opacity = `${1 - deltaY / 400}`;
-      }
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStartRef.current) return;
-
-    // Close if pulled down more than 150px
-    if (pullDistance > 150) {
-      onClose();
-    } else if (containerRef.current) {
-      containerRef.current.style.transform = 'translateY(0)';
-      containerRef.current.style.opacity = '1';
-    }
-
-    setPullDistance(0);
-    touchStartRef.current = null;
-  };
 
   // Fixed height for Featured Views to ensure alignment
   const featuredViewsHeight = 320; // 320px = 80 * 4 (h-80 in Tailwind)
@@ -369,34 +290,14 @@ export default function ProjectDetailModal({
   return (
     <>
       {/* Main Modal */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
-        onClick={onClose}
-      >
-        {/* Pull to close indicator */}
-        {pullDistance > 30 && (
-          <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 text-white text-sm bg-black/50 px-4 py-2 rounded-full">
-            {pullDistance > 150 ? 'Release to close' : 'Pull down to close'}
-          </div>
-        )}
-
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
         <div
-          ref={containerRef}
           className={`${
             isDarkMode
               ? "bg-gray-900 border border-gray-800"
               : "bg-gradient-to-br from-white via-orange-25 to-gray-50 border border-gray-200"
-          } rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl touch-pan-y`}
-          onClick={(e) => e.stopPropagation()}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{ 
-            touchAction: 'pan-y',
-            transition: 'transform 0.3s ease, opacity 0.3s ease'
-          }}
+          } rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}
         >
-          <div ref={contentRef} className="overflow-y-auto max-h-[90vh]">
           {/* Header */}
           <div
             className={`flex justify-between items-center p-6 border-b ${
@@ -659,7 +560,6 @@ export default function ProjectDetailModal({
                 />
               </div>
             </div>
-          </div>
           </div>
         </div>
       </div>

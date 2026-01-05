@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   X,
@@ -28,9 +28,6 @@ export default function ImageViewerModal({
   const { isDarkMode } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isZoomed, setIsZoomed] = useState(false);
-  const [pullDistance, setPullDistance] = useState(0);
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // Create image array from either prop
   const imageArray = images || (imageUrl ? [imageUrl] : []);
@@ -39,75 +36,6 @@ export default function ImageViewerModal({
   if (imageArray.length === 0) {
     return null;
   }
-
-  // Handle touch gestures
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartRef.current = {
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY,
-    };
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-
-    const deltaX = e.touches[0].clientX - touchStartRef.current.x;
-    const deltaY = e.touches[0].clientY - touchStartRef.current.y;
-
-    // Pull down to close
-    if (deltaY > 0 && Math.abs(deltaY) > Math.abs(deltaX)) {
-      setPullDistance(deltaY);
-      if (containerRef.current) {
-        containerRef.current.style.transform = `translateY(${deltaY}px)`;
-        containerRef.current.style.opacity = `${1 - deltaY / 400}`;
-      }
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStartRef.current) return;
-
-    // Close if pulled down more than 150px
-    if (pullDistance > 150) {
-      onClose();
-    } else if (containerRef.current) {
-      containerRef.current.style.transform = 'translateY(0)';
-      containerRef.current.style.opacity = '1';
-    }
-
-    const deltaX = touchStartRef.current.x - touchStartRef.current.x;
-    const deltaY = touchStartRef.current.y - touchStartRef.current.y;
-
-    // Reset
-    setPullDistance(0);
-    touchStartRef.current = null;
-  };
-
-  // Handle swipe for image navigation
-  const handleImageTouchStart = (e: React.TouchEvent) => {
-    touchStartRef.current = {
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY,
-    };
-  };
-
-  const handleImageTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-
-    const deltaX = e.changedTouches[0].clientX - touchStartRef.current.x;
-    const deltaY = e.changedTouches[0].clientY - touchStartRef.current.y;
-
-    // Swipe horizontally to navigate (if not zoomed)
-    if (!isZoomed && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-      if (deltaX > 0) {
-        goToPrevious();
-      } else {
-        goToNext();
-      }
-    }
-
-    touchStartRef.current = null;
-  };
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -167,26 +95,12 @@ export default function ImageViewerModal({
   };
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      ref={containerRef}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      style={{ transition: 'transform 0.3s ease, opacity 0.3s ease' }}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/90 backdrop-blur-sm"
         onClick={onClose}
       />
-
-      {/* Pull to close indicator */}
-      {pullDistance > 30 && (
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 text-white text-sm bg-black/50 px-4 py-2 rounded-full">
-          {pullDistance > 150 ? 'Release to close' : 'Pull down to close'}
-        </div>
-      )}
 
       {/* Modal Content */}
       <div className="relative z-10 max-w-7xl max-h-full w-full h-full flex items-center justify-center p-4">
@@ -224,11 +138,7 @@ export default function ImageViewerModal({
         )}
 
         {/* Image Container */}
-        <div 
-          className="relative max-w-full max-h-full"
-          onTouchStart={handleImageTouchStart}
-          onTouchEnd={handleImageTouchEnd}
-        >
+        <div className="relative max-w-full max-h-full">
           <img
             src={imageArray[currentIndex] || "/placeholder.svg"}
             alt={`Image ${currentIndex + 1} of ${imageArray.length}`}
@@ -236,7 +146,6 @@ export default function ImageViewerModal({
               isZoomed ? "scale-150 cursor-zoom-out" : "cursor-zoom-in"
             }`}
             onClick={() => setIsZoomed(!isZoomed)}
-            draggable={false}
           />
         </div>
 
