@@ -18,8 +18,39 @@ export function SiteImagesProvider({ children }) {
     try {
       setLoading(true);
       const data = await siteImageService.getAllSiteImages();
-      console.log("✅ Site images fetched:", data);
-      setSiteImages(data);
+      
+      // Optimize Cloudinary URLs
+      const optimizedData = data.map(img => {
+        if (img.image && typeof img.image === 'object' && img.image.url) {
+          const url = img.image.url;
+          if (url.includes('cloudinary.com')) {
+            // Optimize based on category
+            let transformation = '/upload/f_auto,q_auto,';
+            if (img.category === 'logo') {
+              transformation += 'w_400,h_400,c_fit/';
+            } else if (img.category === 'hero') {
+              transformation += 'w_1920,h_1080,c_fill/';
+            } else {
+              transformation += 'w_800,h_600,c_fill/';
+            }
+            img.image.url = url.replace('/upload/', transformation);
+          }
+        } else if (typeof img.image === 'string' && img.image.includes('cloudinary.com')) {
+          let transformation = '/upload/f_auto,q_auto,';
+          if (img.category === 'logo') {
+            transformation += 'w_400,h_400,c_fit/';
+          } else if (img.category === 'hero') {
+            transformation += 'w_1920,h_1080,c_fill/';
+          } else {
+            transformation += 'w_800,h_600,c_fill/';
+          }
+          img.image = img.image.replace('/upload/', transformation);
+        }
+        return img;
+      });
+      
+      console.log("✅ Site images fetched:", optimizedData);
+      setSiteImages(optimizedData);
       setError(null);
     } catch (err) {
       setError(err.message || "Failed to fetch site images");

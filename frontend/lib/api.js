@@ -8,6 +8,7 @@ const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
+    "Cache-Control": "public, max-age=60, stale-while-revalidate=120",
   },
   timeout: 60000, // Increased to 60 seconds for Cloudinary uploads
 });
