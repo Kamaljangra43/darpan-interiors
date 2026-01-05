@@ -113,13 +113,18 @@ export default function ConsultationModal({ onClose }: ConsultationModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
       <div
         className={`${
           isDarkMode
             ? "bg-gray-900 border border-gray-800"
             : "bg-white border border-gray-200"
-        } rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}
+        } rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl touch-pan-y overscroll-contain`}
+        onClick={(e) => e.stopPropagation()}
+        style={{ touchAction: 'pan-y' }}
       >
         {/* Header */}
         <div
