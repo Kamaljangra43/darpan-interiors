@@ -1404,6 +1404,10 @@ export default function AdminDashboardPage() {
                               : testimonial.image.url
                           }
                           alt={testimonial.name}
+                          width={112}
+                          height={112}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover object-center border-4 border-gray-100 shadow-md scale-110"
                           style={{
                             objectFit: "cover",
@@ -1555,7 +1559,12 @@ export default function AdminDashboardPage() {
                         <img
                           src={newTestimonial.image}
                           alt="Preview"
+                          width={96}
+                          height={96}
+                          loading="lazy"
+                          decoding="async"
                           className="w-24 h-24 rounded-full object-cover"
+                          style={{ maxWidth: '100%', height: 'auto' }}
                         />
                       </div>
                     )}
@@ -1828,7 +1837,12 @@ function ImagesManagementSection({
                 <img
                   src={image.image?.url}
                   alt={image.altText || image.title}
+                  width={400}
+                  height={192}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover"
+                  style={{ maxWidth: '100%', height: 'auto' }}
                 />
                 <button
                   onClick={() => onDeleteImage(image._id)}
@@ -1961,7 +1975,12 @@ function ImagesManagementSection({
                   <img
                     src={newImage.image}
                     alt="Preview"
+                    width={128}
+                    height={128}
+                    loading="lazy"
+                    decoding="async"
                     className="w-32 h-32 object-cover rounded"
+                    style={{ maxWidth: '100%', height: 'auto' }}
                   />
                 </div>
               )}

@@ -142,9 +142,15 @@ export default function ImageViewerModal({
           <img
             src={imageArray[currentIndex] || "/placeholder.svg"}
             alt={`Image ${currentIndex + 1} of ${imageArray.length}`}
+            width={1200}
+            height={800}
+            loading="eager"
+            fetchPriority="high"
+            decoding="sync"
             className={`max-w-full max-h-[90vh] object-contain transition-transform duration-300 ${
               isZoomed ? "scale-150 cursor-zoom-out" : "cursor-zoom-in"
             }`}
+            style={{ maxWidth: '100%', height: 'auto', objectFit: 'contain' }}
             onClick={() => setIsZoomed(!isZoomed)}
           />
         </div>
@@ -200,7 +206,12 @@ export default function ImageViewerModal({
                 <img
                   src={image || "/placeholder.svg"}
                   alt={`Thumbnail ${index + 1}`}
+                  width={80}
+                  height={80}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover"
+                  style={{ maxWidth: '100%', height: 'auto' }}
                 />
               </button>
             ))}

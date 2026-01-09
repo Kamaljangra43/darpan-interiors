@@ -1,13 +1,24 @@
 const asyncHandler = require("express-async-handler");
 const Testimonial = require("../models/testimonialModel");
 const cloudinary = require("../config/cloudinary");
+const { optimizeImage } = require("../utils/imageUtils");
 
 // @desc Get all testimonials
 // @route GET /api/testimonials
 // @access Public
 const getTestimonials = asyncHandler(async (req, res) => {
   const testimonials = await Testimonial.find({}).sort({ createdAt: -1 });
-  res.json(testimonials);
+
+  // Optimize testimonial images (typically avatars/portraits)
+  const optimizedTestimonials = testimonials.map((testimonial) => {
+    const plain = testimonial.toObject ? testimonial.toObject() : testimonial;
+    return {
+      ...plain,
+      image: optimizeImage(plain.image, 200, 200), // Small avatars
+    };
+  });
+
+  res.json(optimizedTestimonials);
 });
 
 // @desc Create testimonial

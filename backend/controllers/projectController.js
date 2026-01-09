@@ -1,12 +1,19 @@
 const asyncHandler = require("express-async-handler");
 const Project = require("../models/projectModel");
+const { formatProjectWithImages } = require("../utils/imageUtils");
 
 // @desc    Get all projects
 // @route   GET /api/projects
 // @access  Public
 const getProjects = asyncHandler(async (req, res) => {
   const projects = await Project.find({}).sort({ createdAt: -1 });
-  res.json(projects);
+
+  // Optimize images before sending
+  const optimizedProjects = projects.map((project) =>
+    formatProjectWithImages(project)
+  );
+
+  res.json(optimizedProjects);
 });
 
 // @desc    Get single project
@@ -16,7 +23,9 @@ const getProjectById = asyncHandler(async (req, res) => {
   const project = await Project.findById(req.params.id);
 
   if (project) {
-    res.json(project);
+    // Optimize images before sending
+    const optimizedProject = formatProjectWithImages(project);
+    res.json(optimizedProject);
   } else {
     res.status(404);
     throw new Error("Project not found");

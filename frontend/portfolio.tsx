@@ -65,6 +65,7 @@ import { StatsProvider, useStats } from "./contexts/stats-context";
 import ConsultationModal from "./components/consultation-modal";
 import ProjectDetailModal from "./components/project-detail-modal";
 import ImageViewerModal from "./components/image-viewer-modal";
+import OptimizedImage from "./components/OptimizedImage";
 import type { Project } from "@/types/project";
 
 // Helper function to extract image URL from string or object
@@ -1382,15 +1383,19 @@ function DarpanInteriorsPortfolioContent() {
                       } transition-all duration-300 hover:shadow-xl group cursor-pointer`}
                       onClick={() => setSelectedProject(project)}
                     >
-                      <div className="relative overflow-hidden rounded-t-lg">
-                        <img
+                      <div className="relative overflow-hidden rounded-t-lg h-48">
+                        <OptimizedImage
                           src={
                             project.images && project.images.length > 0
                               ? getImageUrl(project.images[0])
                               : "/placeholder.svg"
                           }
                           alt={project.title}
-                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                          responsiveImages={project.responsiveImages}
+                          fill
+                          priority={false}
+                          className="group-hover:scale-105 transition-transform duration-300"
+                          objectFit="cover"
                         />
                         <div className="absolute top-4 left-4">
                           <Badge
@@ -1495,14 +1500,19 @@ function DarpanInteriorsPortfolioContent() {
                       <CardContent className="p-6">
                         <div className="flex gap-6">
                           <div className="relative w-32 h-32 flex-shrink-0">
-                            <img
+                            <OptimizedImage
                               src={
                                 project.images && project.images.length > 0
                                   ? getImageUrl(project.images[0])
                                   : "/placeholder.svg"
                               }
                               alt={project.title}
-                              className="w-full h-full object-cover rounded-lg"
+                              responsiveImages={project.responsiveImages}
+                              width={128}
+                              height={128}
+                              priority={false}
+                              className="rounded-lg"
+                              objectFit="cover"
                             />
                             <Button
                               size="icon"

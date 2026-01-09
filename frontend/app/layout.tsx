@@ -79,6 +79,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Cloudinary Resource Hints */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        
         <style>{`
 html {
   font-family: ${GeistSans.style.fontFamily};

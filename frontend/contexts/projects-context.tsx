@@ -38,8 +38,11 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
 
       // Optimize Cloudinary URLs
       const optimizeCloudinaryUrl = (url: string) => {
-        if (url && url.includes('cloudinary.com')) {
-          return url.replace('/upload/', '/upload/f_auto,q_auto,w_800,h_600,c_fill/');
+        if (url && url.includes("cloudinary.com")) {
+          return url.replace(
+            "/upload/",
+            "/upload/f_auto,q_auto,w_800,h_600,c_fill/"
+          );
         }
         return url;
       };

@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const SiteImage = require("../models/siteImageModel");
 const cloudinary = require("../config/cloudinary");
+const { optimizeImage } = require("../utils/imageUtils");
 
 // @desc Get all site images
 // @route GET /api/site-images
@@ -13,7 +14,29 @@ const getSiteImages = asyncHandler(async (req, res) => {
   if (section) filter.section = section;
 
   const images = await SiteImage.find(filter).sort({ order: 1, createdAt: -1 });
-  res.json(images);
+
+  // Optimize images based on category
+  const optimizedImages = images.map((img) => {
+    const plainImg = img.toObject ? img.toObject() : img;
+
+    // Set different sizes based on category
+    let width = 800,
+      height = 600;
+    if (plainImg.category === "logo") {
+      width = 400;
+      height = 400;
+    } else if (plainImg.category === "hero") {
+      width = 1920;
+      height = 1080;
+    }
+
+    return {
+      ...plainImg,
+      image: optimizeImage(plainImg.image, width, height),
+    };
+  });
+
+  res.json(optimizedImages);
 });
 
 // @desc Create site image
