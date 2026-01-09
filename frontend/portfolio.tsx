@@ -853,7 +853,13 @@ function DarpanInteriorsPortfolioContent() {
                       <img
                         src={image || "/placeholder.svg"}
                         alt={`Interior design showcase ${index + 1}`}
+                        width={1200}
+                        height={500}
+                        loading={index === 0 ? "eager" : "lazy"}
+                        fetchPriority={index === 0 ? "high" : "low"}
+                        decoding={index === 0 ? "sync" : "async"}
                         className="w-full h-full object-cover cursor-pointer"
+                        style={{ maxWidth: '100%', height: 'auto' }}
                         onClick={() => setSelectedImage(image)}
                       />
                     </div>

@@ -150,7 +150,7 @@ export default function ImageViewerModal({
             className={`max-w-full max-h-[90vh] object-contain transition-transform duration-300 ${
               isZoomed ? "scale-150 cursor-zoom-out" : "cursor-zoom-in"
             }`}
-            style={{ maxWidth: '100%', height: 'auto', objectFit: 'contain' }}
+            style={{ maxWidth: "100%", height: "auto", objectFit: "contain" }}
             onClick={() => setIsZoomed(!isZoomed)}
           />
         </div>
@@ -211,7 +211,7 @@ export default function ImageViewerModal({
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover"
-                  style={{ maxWidth: '100%', height: 'auto' }}
+                  style={{ maxWidth: "100%", height: "auto" }}
                 />
               </button>
             ))}

@@ -83,6 +83,19 @@ export default function RootLayout({
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         
+        {/* Preload Critical Hero Image */}
+        <link
+          rel="preload"
+          as="image"
+          href="https://res.cloudinary.com/dyrivmkfv/image/upload/f_auto,q_auto:eco,w_800,h_450,c_fill/v1/darpan-interiors/hero/s27ferttjmnhawayllcp.jpg"
+          imageSrcSet="
+            https://res.cloudinary.com/dyrivmkfv/image/upload/f_auto,q_auto:eco,w_640,h_360,c_fill/v1/darpan-interiors/hero/s27ferttjmnhawayllcp.jpg 640w,
+            https://res.cloudinary.com/dyrivmkfv/image/upload/f_auto,q_auto:eco,w_800,h_450,c_fill/v1/darpan-interiors/hero/s27ferttjmnhawayllcp.jpg 800w,
+            https://res.cloudinary.com/dyrivmkfv/image/upload/f_auto,q_auto:eco,w_1200,h_675,c_fill/v1/darpan-interiors/hero/s27ferttjmnhawayllcp.jpg 1200w
+          "
+          imageSizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px"
+        />
+
         <style>{`
 html {
   font-family: ${GeistSans.style.fontFamily};

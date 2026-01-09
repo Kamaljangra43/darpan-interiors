@@ -1390,7 +1390,7 @@ export default function AdminDashboardPage() {
 
                     {/* Profile Picture */}
                     {testimonial.image ? (
-                      <div 
+                      <div
                         className="mb-4 mx-auto overflow-hidden rounded-full"
                         style={{
                           width: "112px",
@@ -1564,7 +1564,7 @@ export default function AdminDashboardPage() {
                           loading="lazy"
                           decoding="async"
                           className="w-24 h-24 rounded-full object-cover"
-                          style={{ maxWidth: '100%', height: 'auto' }}
+                          style={{ maxWidth: "100%", height: "auto" }}
                         />
                       </div>
                     )}
@@ -1842,7 +1842,7 @@ function ImagesManagementSection({
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover"
-                  style={{ maxWidth: '100%', height: 'auto' }}
+                  style={{ maxWidth: "100%", height: "auto" }}
                 />
                 <button
                   onClick={() => onDeleteImage(image._id)}
@@ -1980,7 +1980,7 @@ function ImagesManagementSection({
                     loading="lazy"
                     decoding="async"
                     className="w-32 h-32 object-cover rounded"
-                    style={{ maxWidth: '100%', height: 'auto' }}
+                    style={{ maxWidth: "100%", height: "auto" }}
                   />
                 </div>
               )}

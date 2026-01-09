@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from "react";
+import Image from "next/image";
 
 interface ResponsiveImage {
   width: number;
@@ -18,7 +18,7 @@ interface OptimizedImageProps {
   priority?: boolean;
   className?: string;
   sizes?: string;
-  objectFit?: 'cover' | 'contain' | 'fill';
+  objectFit?: "cover" | "contain" | "fill";
   objectPosition?: string;
   onClick?: () => void;
 }
@@ -31,10 +31,10 @@ export default function OptimizedImage({
   height = 675,
   fill = false,
   priority = false,
-  className = '',
-  sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px',
-  objectFit = 'cover',
-  objectPosition = 'center',
+  className = "",
+  sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px",
+  objectFit = "cover",
+  objectPosition = "center",
   onClick,
 }: OptimizedImageProps) {
   const [mounted, setMounted] = useState(false);
@@ -45,15 +45,21 @@ export default function OptimizedImage({
 
   if (!mounted) {
     const style = fill
-      ? { position: 'absolute' as const, inset: 0, backgroundColor: '#f0f0f0' }
-      : { width: width ? `${width}px` : '100%', height: height ? `${height}px` : 'auto', backgroundColor: '#f0f0f0' };
+      ? { position: "absolute" as const, inset: 0, backgroundColor: "#f0f0f0" }
+      : {
+          width: width ? `${width}px` : "100%",
+          height: height ? `${height}px` : "auto",
+          backgroundColor: "#f0f0f0",
+        };
 
     return <div style={style} className={className} />;
   }
 
-  let srcSet = '';
+  let srcSet = "";
   if (responsiveImages && responsiveImages.length > 0) {
-    srcSet = responsiveImages.map(img => `${img.url} ${img.width}w`).join(', ');
+    srcSet = responsiveImages
+      .map((img) => `${img.url} ${img.width}w`)
+      .join(", ");
   }
 
   if (fill) {
@@ -80,15 +86,15 @@ export default function OptimizedImage({
       alt={alt}
       width={width}
       height={height}
-      loading={priority ? 'eager' : 'lazy'}
-      decoding={priority ? 'sync' : 'async'}
-      fetchPriority={priority ? 'high' : 'low'}
+      loading={priority ? "eager" : "lazy"}
+      decoding={priority ? "sync" : "async"}
+      fetchPriority={priority ? "high" : "low"}
       className={className}
       style={{
-        display: 'block',
-        width: '100%',
-        height: 'auto',
-        maxWidth: width ? `${width}px` : 'none',
+        display: "block",
+        width: "100%",
+        height: "auto",
+        maxWidth: width ? `${width}px` : "none",
         objectFit,
         objectPosition,
       }}
