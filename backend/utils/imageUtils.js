@@ -1,4 +1,4 @@
-const cloudinary = require("cloudinary").v2;
+const cloudinary = require("../config/cloudinary");
 
 // Extract public ID from Cloudinary URL
 const extractPublicId = (url) => {
@@ -73,10 +73,10 @@ const optimizeImage = (image, width = 800, height = 600) => {
 const formatProjectWithImages = (project) => {
   const plainProject = project.toObject ? project.toObject() : project;
 
-  // Optimize images array
+  // Optimize images array (1200x675 for projects)
   if (plainProject.images && Array.isArray(plainProject.images)) {
     plainProject.images = plainProject.images.map((img) =>
-      optimizeImage(img, 800, 600)
+      optimizeImage(img, 1200, 675)
     );
   }
 
