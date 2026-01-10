@@ -99,7 +99,19 @@ function DarpanInteriorsPortfolioContent() {
   const { projects, loading: projectsLoading } = useProjects();
   const { testimonials, loading: testimonialsLoading } = useTestimonials();
   const { getSiteImagesByCategory } = useSiteImages();
-  const { stats } = useStats();
+  const { stats, loading: statsLoading } = useStats();
+
+  // Placeholder stats to prevent layout shift
+  const placeholderStats = [
+    { _id: "temp-1", label: "Projects Completed", value: "-", order: 1 },
+    { _id: "temp-2", label: "Happy Clients", value: "-", order: 2 },
+    { _id: "temp-3", label: "Years Experience", value: "-", order: 3 },
+    { _id: "temp-4", label: "Design Awards", value: "-", order: 4 },
+  ];
+
+  // Use placeholder stats while loading, then switch to real stats
+  const displayStats =
+    statsLoading || stats.length === 0 ? placeholderStats : stats;
 
   const [activeSection, setActiveSection] = useState("home");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -137,20 +149,11 @@ function DarpanInteriorsPortfolioContent() {
   const heroSectionRef = useRef<HTMLDivElement>(null);
   const testimonialCardRef = useRef<HTMLDivElement>(null);
 
-  // Get dynamic hero images from context, fallback to static images
+  // Get dynamic hero images from context
   const dynamicHeroImages = getSiteImagesByCategory("hero", "main");
-  const heroImages =
-    dynamicHeroImages.length > 0
-      ? dynamicHeroImages
-          .map((img: any) => img.image?.url || img.image)
-          .filter(Boolean)
-      : [
-          "/modern-luxury-living-room-interior-design.jpg",
-          "/elegant-bedroom-interior-design.jpg",
-          "/modern-kitchen.png",
-          "/luxury-bathroom-interior.jpg",
-          "/cozy-living-room.png",
-        ];
+  const heroImages = dynamicHeroImages
+    .map((img: any) => img.image?.url || img.image)
+    .filter(Boolean);
 
   // Get logo images from context with variant support
   // Use useMemo to properly re-compute logo when theme changes
@@ -170,28 +173,14 @@ function DarpanInteriorsPortfolioContent() {
     return selectedLogo;
   }, [isDarkMode, getSiteImagesByCategory]);
 
-  // Get dynamic about images from context, fallback to static images
+  // Get dynamic about images from context
   const dynamicAboutImages = getSiteImagesByCategory("about", "main");
-  const aboutImages =
-    dynamicAboutImages.length > 0
-      ? dynamicAboutImages
-          .sort((a: any, b: any) => a.order - b.order)
-          .map((img: any) => ({
-            url: img.image?.url || img.image,
-            alt: img.altText || img.title,
-          }))
-      : [
-          {
-            url: "/elegant-bedroom-interior-design.jpg",
-            alt: "Elegant bedroom interior",
-          },
-          { url: "/modern-kitchen.png", alt: "Modern kitchen design" },
-          {
-            url: "/luxury-bathroom-interior.jpg",
-            alt: "Luxury bathroom interior",
-          },
-          { url: "/cozy-living-room.png", alt: "Cozy living room design" },
-        ];
+  const aboutImages = dynamicAboutImages
+    .sort((a: any, b: any) => a.order - b.order)
+    .map((img: any) => ({
+      url: img.image?.url || img.image,
+      alt: img.altText || img.title,
+    }));
 
   // Testimonials are now loaded from context
 
@@ -516,30 +505,20 @@ function DarpanInteriorsPortfolioContent() {
               onClick={() => scrollToSection("home")}
               className="flex items-center space-x-4 hover:opacity-80 transition-opacity cursor-pointer"
             >
-              {/* Logo Image or Icon */}
-              {logoImage ? (
-                <div
-                  className="rounded-xl shadow-md overflow-hidden flex-shrink-0"
-                  style={{ height: "56px", width: "56px" }}
-                >
-                  <img
-                    src={logoImage.image?.url || logoImage.image}
-                    alt={logoImage.altText || "Darpan Interiors"}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              ) : (
-                <div
-                  className={`flex-shrink-0 ${
-                    isDarkMode
-                      ? "bg-gradient-to-br from-amber-400 to-orange-500"
-                      : "bg-gradient-to-br from-amber-500 to-orange-600"
-                  } rounded-xl flex items-center justify-center shadow-md`}
-                  style={{ height: "56px", width: "56px" }}
-                >
-                  <Sparkles className="h-8 w-8 text-white" />
-                </div>
-              )}
+              {/* Logo Image with Fallback */}
+              <div className="logo-container">
+                <img
+                  src={
+                    logoImage?.image?.url ||
+                    logoImage?.image ||
+                    "/logo-fallback.svg"
+                  }
+                  alt={logoImage?.altText || "Darpan Interiors"}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="sync"
+                />
+              </div>
 
               {/* Company Name - Always Show */}
               <div className="min-w-0">
@@ -772,7 +751,7 @@ function DarpanInteriorsPortfolioContent() {
 
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
-                {stats.map((stat, index) => {
+                {displayStats.map((stat, index) => {
                   // Map icon names to Lucide components
                   const getIcon = (label: string) => {
                     const lowerLabel = label.toLowerCase();
@@ -841,28 +820,51 @@ function DarpanInteriorsPortfolioContent() {
               <div className="relative z-10 overflow-hidden rounded-2xl">
                 {/* Image Container */}
                 <div className="relative w-full h-[500px]">
-                  {heroImages.map((image: string, index: number) => (
-                    <div
-                      key={index}
-                      className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                        index === currentImageIndex
-                          ? "opacity-100"
-                          : "opacity-0"
-                      }`}
-                    >
-                      <img
-                        src={image || "/placeholder.svg"}
-                        alt={`Interior design showcase ${index + 1}`}
-                        width={1920}
-                        height={1080}
-                        loading={index === 0 ? "eager" : "lazy"}
-                        fetchPriority={index === 0 ? "high" : "low"}
-                        decoding={index === 0 ? "sync" : "async"}
-                        className="w-full h-full object-cover cursor-pointer"
-                        onClick={() => setSelectedImage(image)}
-                      />
+                  {heroImages.length > 0 ? (
+                    heroImages.map((image: string, index: number) => (
+                      <div
+                        key={index}
+                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                          index === currentImageIndex
+                            ? "opacity-100"
+                            : "opacity-0"
+                        }`}
+                      >
+                        <img
+                          src={image}
+                          alt={`Interior design showcase ${index + 1}`}
+                          width={1920}
+                          height={1080}
+                          loading={index === 0 ? "eager" : "lazy"}
+                          fetchPriority={index === 0 ? "high" : "low"}
+                          decoding={index === 0 ? "sync" : "async"}
+                          className="w-full h-full object-cover cursor-pointer"
+                          onClick={() => setSelectedImage(image)}
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-orange-500/10 animate-pulse">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                          <Sparkles
+                            className={`h-16 w-16 mx-auto mb-4 ${
+                              isDarkMode
+                                ? "text-amber-400/30"
+                                : "text-amber-600/30"
+                            }`}
+                          />
+                          <p
+                            className={`text-sm ${
+                              isDarkMode ? "text-gray-500" : "text-gray-400"
+                            }`}
+                          >
+                            Loading showcase...
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
 
                 {/* Navigation Arrows */}
@@ -1083,32 +1085,72 @@ function DarpanInteriorsPortfolioContent() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-4">
-                <img
-                  src={aboutImages[0]?.url}
-                  alt={aboutImages[0]?.alt}
-                  className="rounded-xl shadow-lg w-full h-64 object-cover cursor-pointer hover:shadow-xl transition-shadow"
-                  onClick={() => setSelectedImage(aboutImages[0]?.url)}
-                />
-                <img
-                  src={aboutImages[1]?.url}
-                  alt={aboutImages[1]?.alt}
-                  className="rounded-xl shadow-lg w-full h-64 object-cover cursor-pointer hover:shadow-xl transition-shadow"
-                  onClick={() => setSelectedImage(aboutImages[1]?.url)}
-                />
+                {aboutImages[0]?.url ? (
+                  <img
+                    src={aboutImages[0]?.url}
+                    alt={aboutImages[0]?.alt}
+                    className="rounded-xl shadow-lg w-full h-64 object-cover cursor-pointer hover:shadow-xl transition-shadow"
+                    onClick={() => setSelectedImage(aboutImages[0]?.url)}
+                  />
+                ) : (
+                  <div
+                    className={`rounded-xl shadow-lg w-full h-64 bg-gradient-to-br ${
+                      isDarkMode
+                        ? "from-gray-800 to-gray-700"
+                        : "from-gray-100 to-gray-200"
+                    } animate-pulse`}
+                  />
+                )}
+                {aboutImages[1]?.url ? (
+                  <img
+                    src={aboutImages[1]?.url}
+                    alt={aboutImages[1]?.alt}
+                    className="rounded-xl shadow-lg w-full h-64 object-cover cursor-pointer hover:shadow-xl transition-shadow"
+                    onClick={() => setSelectedImage(aboutImages[1]?.url)}
+                  />
+                ) : (
+                  <div
+                    className={`rounded-xl shadow-lg w-full h-64 bg-gradient-to-br ${
+                      isDarkMode
+                        ? "from-gray-800 to-gray-700"
+                        : "from-gray-100 to-gray-200"
+                    } animate-pulse`}
+                  />
+                )}
               </div>
               <div className="space-y-4 pt-8">
-                <img
-                  src={aboutImages[2]?.url}
-                  alt={aboutImages[2]?.alt}
-                  className="rounded-xl shadow-lg w-full h-64 object-cover cursor-pointer hover:shadow-xl transition-shadow"
-                  onClick={() => setSelectedImage(aboutImages[2]?.url)}
-                />
-                <img
-                  src={aboutImages[3]?.url}
-                  alt={aboutImages[3]?.alt}
-                  className="rounded-xl shadow-lg w-full h-64 object-cover cursor-pointer hover:shadow-xl transition-shadow"
-                  onClick={() => setSelectedImage(aboutImages[3]?.url)}
-                />
+                {aboutImages[2]?.url ? (
+                  <img
+                    src={aboutImages[2]?.url}
+                    alt={aboutImages[2]?.alt}
+                    className="rounded-xl shadow-lg w-full h-64 object-cover cursor-pointer hover:shadow-xl transition-shadow"
+                    onClick={() => setSelectedImage(aboutImages[2]?.url)}
+                  />
+                ) : (
+                  <div
+                    className={`rounded-xl shadow-lg w-full h-64 bg-gradient-to-br ${
+                      isDarkMode
+                        ? "from-gray-800 to-gray-700"
+                        : "from-gray-100 to-gray-200"
+                    } animate-pulse`}
+                  />
+                )}
+                {aboutImages[3]?.url ? (
+                  <img
+                    src={aboutImages[3]?.url}
+                    alt={aboutImages[3]?.alt}
+                    className="rounded-xl shadow-lg w-full h-64 object-cover cursor-pointer hover:shadow-xl transition-shadow"
+                    onClick={() => setSelectedImage(aboutImages[3]?.url)}
+                  />
+                ) : (
+                  <div
+                    className={`rounded-xl shadow-lg w-full h-64 bg-gradient-to-br ${
+                      isDarkMode
+                        ? "from-gray-800 to-gray-700"
+                        : "from-gray-100 to-gray-200"
+                    } animate-pulse`}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -1393,10 +1435,9 @@ function DarpanInteriorsPortfolioContent() {
                           src={
                             project.images && project.images.length > 0
                               ? getImageUrl(project.images[0])
-                              : "/placeholder.svg"
+                              : ""
                           }
                           alt={project.title}
-                          responsiveImages={project.responsiveImages}
                           fill
                           priority={false}
                           className="group-hover:scale-105 transition-transform duration-300"
@@ -1509,10 +1550,9 @@ function DarpanInteriorsPortfolioContent() {
                               src={
                                 project.images && project.images.length > 0
                                   ? getImageUrl(project.images[0])
-                                  : "/placeholder.svg"
+                                  : ""
                               }
                               alt={project.title}
-                              responsiveImages={project.responsiveImages}
                               width={128}
                               height={128}
                               priority={false}

@@ -94,6 +94,21 @@ body {
   margin: 0;
   overflow-x: hidden;
 }
+/* Logo container - prevent layout shift */
+.logo-container {
+  height: 56px;
+  width: 56px;
+  flex-shrink: 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+.logo-container img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  display: block;
+}
 /* Hero section critical styles */
 .hero-section {
   position: relative;
