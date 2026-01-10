@@ -20,9 +20,9 @@ const nextConfig = {
   },
 
   compress: true,
-  
+
   // Optimize production builds - v2
-  productionBrowserSourceMaps: false,  // Enable experimental optimizations
+  productionBrowserSourceMaps: false, // Enable experimental optimizations
   experimental: {
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
   },
