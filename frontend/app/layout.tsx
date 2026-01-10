@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Playfair_Display } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -83,32 +82,38 @@ export default function RootLayout({
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
 
-        {/* Preload Critical Hero Image - Match actual render dimensions - v20260110 */}
-        <link
-          rel="preload"
-          as="image"
-          href="https://res.cloudinary.com/dyrivmkfv/image/upload/f_auto,q_auto:eco,w_1920,h_1080,c_fill/v1/darpan-interiors/hero/s27ferttjmnhawayllcp.jpg"
-          imageSrcSet="
-            https://res.cloudinary.com/dyrivmkfv/image/upload/f_auto,q_auto:eco,w_640,h_360,c_fill/v1/darpan-interiors/hero/s27ferttjmnhawayllcp.jpg 640w,
-            https://res.cloudinary.com/dyrivmkfv/image/upload/f_auto,q_auto:eco,w_1200,h_675,c_fill/v1/darpan-interiors/hero/s27ferttjmnhawayllcp.jpg 1200w,
-            https://res.cloudinary.com/dyrivmkfv/image/upload/f_auto,q_auto:eco,w_1920,h_1080,c_fill/v1/darpan-interiors/hero/s27ferttjmnhawayllcp.jpg 1920w
-          "
-          imageSizes="(max-width: 640px) 640px, (max-width: 1200px) 1200px, 1920px"
-          fetchPriority="high"
-        />
-
         <style>{`
+/* Critical above-the-fold styles */
 html {
   font-family: ${GeistSans.style.fontFamily};
   --font-sans: ${GeistSans.variable};
   --font-mono: ${GeistMono.variable};
   --font-playfair: ${playfair.style.fontFamily};
 }
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+/* Hero section critical styles */
+.hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
         `}</style>
       </head>
       <body className={playfair.variable}>
         {children}
-        <Analytics />
       </body>
     </html>
   );
