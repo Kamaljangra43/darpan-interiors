@@ -21,6 +21,14 @@ const nextConfig = {
 
   compress: true,
 
+  // Optimize production builds
+  productionBrowserSourceMaps: false,
+
+  // Enable experimental optimizations
+  experimental: {
+    optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
+  },
+
   async headers() {
     return [
       {
