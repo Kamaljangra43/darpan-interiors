@@ -5,12 +5,12 @@ const config: Config = {
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
+    "./contexts/**/*.{ts,tsx,js,jsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
     "./portfolio.tsx",
   ],
   prefix: "",
-  safelist: [],
   theme: {
     container: {
       center: true,

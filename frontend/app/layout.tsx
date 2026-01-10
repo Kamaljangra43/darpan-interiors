@@ -83,7 +83,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
 
-        {/* Preload Critical Hero Image - Match actual render dimensions */}
+        {/* Preload Critical Hero Image - Match actual render dimensions - v20260110 */}
         <link
           rel="preload"
           as="image"
