@@ -82,7 +82,7 @@ export default function RootLayout({
         {/* Cloudinary Resource Hints */}
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-        
+
         {/* Preload Critical Hero Image */}
         <link
           rel="preload"

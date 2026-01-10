@@ -36,17 +36,6 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       const data = await projectService.getAllProjects();
 
-      // Optimize Cloudinary URLs
-      const optimizeCloudinaryUrl = (url: string) => {
-        if (url && url.includes("cloudinary.com")) {
-          return url.replace(
-            "/upload/",
-            "/upload/f_auto,q_auto,w_800,h_600,c_fill/"
-          );
-        }
-        return url;
-      };
-
       // Normalize projects to handle both old and new image formats
       const normalizedProjects = data.map((project: any) => {
         // If images is already in the new format (array of objects)
@@ -55,22 +44,16 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
           project.images.length > 0 &&
           typeof project.images[0] === "object"
         ) {
-          // Images are already in the correct format - optimize URLs
-          return {
-            ...project,
-            images: project.images.map((img: any) => ({
-              ...img,
-              url: optimizeCloudinaryUrl(img.url || img),
-            })),
-          };
+          // Images are already optimized by backend
+          return project;
         }
         // If images is in old format (array of strings)
         else if (project.images && project.images.length > 0) {
-          // Convert to new format with optimized URLs
+          // Convert to new format
           return {
             ...project,
             images: project.images.map((url: string, index: number) => ({
-              url: optimizeCloudinaryUrl(url),
+              url: url,
               featured: index < 3, // First 3 as featured by default
               order: index,
             })),

@@ -20,7 +20,6 @@ const nextConfig = {
   },
 
   compress: true,
-  swcMinify: true,
 
   async headers() {
     return [
