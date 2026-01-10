@@ -25,7 +25,7 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   experimental: {
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
-    optimizeCss: true, // Enable CSS optimization
+    optimizeCss: true, // Enable CSS optimization with critters
   },
 
   async headers() {
