@@ -50,7 +50,22 @@ import {
   SkipForward,
   ChevronLeft,
   ChevronRight,
+  Target,
+  Shield,
+  Zap,
 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useTheme, ThemeProvider } from "./contexts/theme-context";
 import { ProjectsProvider, useProjects } from "./contexts/projects-context";
 import {
@@ -62,6 +77,10 @@ import {
   useSiteImages,
 } from "./contexts/site-images-context";
 import { StatsProvider, useStats } from "./contexts/stats-context";
+import {
+  CertificatesProvider,
+  useCertificates,
+} from "./contexts/certificates-context";
 import ConsultationModal from "./components/consultation-modal";
 import ProjectDetailModal from "./components/project-detail-modal";
 import ImageViewerModal from "./components/image-viewer-modal";
@@ -98,6 +117,7 @@ function DarpanInteriorsPortfolioContent() {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { projects, loading: projectsLoading } = useProjects();
   const { testimonials, loading: testimonialsLoading } = useTestimonials();
+  const { certificates, loading: certificatesLoading } = useCertificates();
   const { getSiteImagesByCategory } = useSiteImages();
   const { stats, loading: statsLoading } = useStats();
 
@@ -118,6 +138,7 @@ function DarpanInteriorsPortfolioContent() {
   const [showConsultation, setShowConsultation] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showOrgChart, setShowOrgChart] = useState(false);
   const [visibleProjects, setVisibleProjects] = useState(6);
   const [projectFilter, setProjectFilter] = useState("all");
   const [projectSearch, setProjectSearch] = useState("");
@@ -127,6 +148,14 @@ function DarpanInteriorsPortfolioContent() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isTestimonialPlaying, setIsTestimonialPlaying] = useState(true);
   const [isTestimonialExpanded, setIsTestimonialExpanded] = useState(false);
+  const [credentialsTab, setCredentialsTab] = useState<
+    "certifications" | "testimonials"
+  >("certifications");
+  const [currentCertificate, setCurrentCertificate] = useState(0);
+  const [isCertificatePlaying, setIsCertificatePlaying] = useState(true);
+  const [selectedCertificateImage, setSelectedCertificateImage] = useState<
+    string | null
+  >(null);
 
   // Contact form state
   const [formData, setFormData] = useState({
@@ -213,6 +242,14 @@ function DarpanInteriorsPortfolioContent() {
     }, 100);
   };
 
+  // Handle manual certificate navigation
+  const handleManualCertificateChange = (index: number) => {
+    setCurrentCertificate(index);
+    setIsCertificatePlaying(false);
+    // Resume auto-play after 15 seconds
+    setTimeout(() => setIsCertificatePlaying(true), 15000);
+  };
+
   // Handle testimonial read more/less toggle
   const handleTestimonialToggle = () => {
     const newExpandedState = !isTestimonialExpanded;
@@ -269,6 +306,28 @@ function DarpanInteriorsPortfolioContent() {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Auto-play testimonials carousel
+  useEffect(() => {
+    if (isTestimonialPlaying && testimonials.length > 0) {
+      const timer = setInterval(() => {
+        setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+      }, 8000); // Change every 8 seconds
+
+      return () => clearInterval(timer);
+    }
+  }, [isTestimonialPlaying, testimonials.length]);
+
+  // Auto-play certificates carousel
+  useEffect(() => {
+    if (isCertificatePlaying && certificates.length > 0) {
+      const timer = setInterval(() => {
+        setCurrentCertificate((prev) => (prev + 1) % certificates.length);
+      }, 6000); // Change every 6 seconds
+
+      return () => clearInterval(timer);
+    }
+  }, [isCertificatePlaying, certificates.length]);
 
   // Smooth scroll to section
   const scrollToSection = (sectionId: string) => {
@@ -459,7 +518,7 @@ function DarpanInteriorsPortfolioContent() {
     { id: "about", label: "About", icon: User },
     { id: "services", label: "Services", icon: Briefcase },
     { id: "portfolio", label: "Portfolio", icon: Eye },
-    { id: "testimonials", label: "Testimonials", icon: MessageSquare },
+    { id: "credentials", label: "Credentials", icon: Award },
     { id: "contact", label: "Contact", icon: Mail },
   ];
 
@@ -487,6 +546,14 @@ function DarpanInteriorsPortfolioContent() {
         <ImageViewerModal
           imageUrl={selectedImage}
           onClose={() => setSelectedImage(null)}
+        />
+      )}
+
+      {/* Certificate Image Viewer Modal */}
+      {selectedCertificateImage && (
+        <ImageViewerModal
+          imageUrl={selectedCertificateImage}
+          onClose={() => setSelectedCertificateImage(null)}
         />
       )}
 
@@ -690,14 +757,14 @@ function DarpanInteriorsPortfolioContent() {
                       : "bg-amber-500/20 text-amber-600 border-amber-500/30"
                   } border`}
                 >
-                  ✨ Award-Winning Interior Design
+                  ✨ 21 Years of Excellence in Interior Design
                 </Badge>
                 <h1
                   className={`text-4xl md:text-6xl font-bold leading-tight ${
                     isDarkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  Transforming{" "}
+                  Creating{" "}
                   <span
                     className={`${
                       isDarkMode
@@ -705,19 +772,36 @@ function DarpanInteriorsPortfolioContent() {
                         : "bg-gradient-to-r from-amber-500 to-orange-600"
                     } bg-clip-text text-transparent`}
                   >
-                    Spaces
+                    Quality Spaces
                   </span>
-                  , Creating Dreams
+                  , Building Trust
                 </h1>
+
+                {/* Mission Statement Badge */}
+                <div
+                  className={`inline-flex items-center space-x-2 px-4 py-3 rounded-lg border ${
+                    isDarkMode
+                      ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                      : "bg-amber-50 border-amber-200 text-amber-700"
+                  }`}
+                >
+                  <Target className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">
+                    Our Mission: To become the preferred partner by providing
+                    Good High Quality + Professional Service
+                  </span>
+                </div>
+
                 <p
                   className={`text-xl ${
                     isDarkMode ? "text-gray-300" : "text-gray-600"
                   } max-w-2xl`}
                 >
-                  With over 12 years of experience, we specialize in creating
-                  beautiful, functional spaces that reflect your unique
-                  personality and lifestyle. From concept to completion, we
-                  bring your vision to life.
+                  With 21 years of proven expertise serving technology giants,
+                  luxury brands, and premium residences across India, we deliver
+                  complete interior solutions backed by superior materials,
+                  skilled craftsmanship, and unwavering commitment to quality
+                  and timely delivery.
                 </p>
               </div>
 
@@ -975,9 +1059,13 @@ function DarpanInteriorsPortfolioContent() {
                     isDarkMode ? "text-gray-300" : "text-gray-600"
                   }`}
                 >
-                  Founded with a vision to transform ordinary spaces into
-                  extraordinary experiences, Darpan Interiors has been at the
-                  forefront of innovative interior design for over a decade.
+                  Since 2005, Mr. Surjit Singh has been delivering premium
+                  interior solutions through Woodcraft, one of Bangalore's
+                  premier interior companies. His proven track record with
+                  leading organizations including Yahoo, Nokia, UST Global, and
+                  Lexus motivated him to establish Darpan Interiors in 2017,
+                  bringing the same quality, expertise, and client-first
+                  approach under his own brand.
                 </p>
               </div>
 
@@ -998,15 +1086,15 @@ function DarpanInteriorsPortfolioContent() {
                         isDarkMode ? "text-white" : "text-gray-900"
                       }`}
                     >
-                      Personalized Design Approach
+                      Vision-Driven Quality
                     </h3>
                     <p
                       className={`${
                         isDarkMode ? "text-gray-400" : "text-gray-600"
                       }`}
                     >
-                      Every project is unique, and we tailor our designs to
-                      reflect your personal style, needs, and budget.
+                      To become the preferred partner for clients by providing
+                      Good High Quality + Professional Service.
                     </p>
                   </div>
                 </div>
@@ -1027,15 +1115,17 @@ function DarpanInteriorsPortfolioContent() {
                         isDarkMode ? "text-white" : "text-gray-900"
                       }`}
                     >
-                      Sustainable & Eco-Friendly
+                      Quality is Our DNA
                     </h3>
                     <p
                       className={`${
                         isDarkMode ? "text-gray-400" : "text-gray-600"
                       }`}
                     >
-                      We prioritize sustainable materials and eco-friendly
-                      practices in all our design solutions.
+                      A systems approach perfected over two decades with highly
+                      skilled workmen, superior materials, and constant
+                      supervision ensures consistent quality in all our
+                      projects.
                     </p>
                   </div>
                 </div>
@@ -1056,15 +1146,17 @@ function DarpanInteriorsPortfolioContent() {
                         isDarkMode ? "text-white" : "text-gray-900"
                       }`}
                     >
-                      End-to-End Service
+                      Time-Focused Delivery
                     </h3>
                     <p
                       className={`${
                         isDarkMode ? "text-gray-400" : "text-gray-600"
                       }`}
                     >
-                      From initial consultation to final installation, we handle
-                      every aspect of your interior design project.
+                      Process efficiency built into our organization ensures
+                      deadlines are met at all times without compromise to
+                      quality. When we commit to delivery, we deliver to your
+                      satisfaction.
                     </p>
                   </div>
                 </div>
@@ -1154,6 +1246,22 @@ function DarpanInteriorsPortfolioContent() {
               </div>
             </div>
           </div>
+
+          {/* Organization Chart - Button to Open Modal */}
+          <div className="mt-6 max-w-4xl mx-auto text-center">
+            <Button
+              onClick={() => setShowOrgChart(true)}
+              size="lg"
+              className={`${
+                isDarkMode
+                  ? "bg-amber-500 hover:bg-amber-600 text-gray-900"
+                  : "bg-amber-600 hover:bg-amber-700 text-white"
+              }`}
+            >
+              <Users className="h-5 w-5 mr-2" />
+              View Our Team Structure
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -1192,9 +1300,11 @@ function DarpanInteriorsPortfolioContent() {
                 isDarkMode ? "text-gray-300" : "text-gray-600"
               } max-w-3xl mx-auto`}
             >
-              From residential homes to commercial spaces, we offer a full range
-              of interior design services tailored to your specific needs and
-              vision.
+              With 21 years of proven experience delivering interiors for
+              technology giants like Yahoo, Nokia, and UST Global, luxury brands
+              like Lexus, and premium residential projects, we offer
+              comprehensive design and execution services backed by our
+              specialized in-house teams across India.
             </p>
           </div>
 
@@ -1261,6 +1371,76 @@ function DarpanInteriorsPortfolioContent() {
             })}
           </div>
 
+          {/* Labour Strength Showcase */}
+          <div className="mt-16">
+            <div className="text-center space-y-4 mb-8">
+              <h3
+                className={`text-2xl font-bold ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Our Specialized{" "}
+                <span
+                  className={`${
+                    isDarkMode
+                      ? "bg-gradient-to-r from-amber-400 to-orange-500"
+                      : "bg-gradient-to-r from-amber-500 to-orange-600"
+                  } bg-clip-text text-transparent`}
+                >
+                  Teams
+                </span>
+              </h3>
+              <p
+                className={`text-sm ${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Backed by 135+ skilled professionals across specialized trades
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+              {[
+                { team: "Carpenter", count: 25, icon: "🔨" },
+                { team: "Civil", count: 30, icon: "🏗️" },
+                { team: "Plumber", count: 5, icon: "🔧" },
+                { team: "Gypsum & POP", count: 30, icon: "🎨" },
+                { team: "False Ceiling", count: 10, icon: "📐" },
+                { team: "Painter", count: 25, icon: "🖌️" },
+                { team: "Housekeeping", count: 10, icon: "✨" },
+              ].map((labour, index) => (
+                <Card
+                  key={index}
+                  className={`${
+                    isDarkMode
+                      ? "bg-gray-800/50 border-gray-700"
+                      : "bg-white border-gray-200"
+                  } text-center`}
+                >
+                  <CardContent className="p-4">
+                    <div className="text-2xl mb-2">{labour.icon}</div>
+                    <div
+                      className={`text-2xl font-bold ${
+                        isDarkMode
+                          ? "bg-gradient-to-r from-amber-400 to-orange-500"
+                          : "bg-gradient-to-r from-amber-500 to-orange-600"
+                      } bg-clip-text text-transparent`}
+                    >
+                      {labour.count}
+                    </div>
+                    <div
+                      className={`text-xs mt-1 ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      {labour.team}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
           <div className="text-center mt-12">
             <Button
               onClick={() => setShowConsultation(true)}
@@ -1319,6 +1499,21 @@ function DarpanInteriorsPortfolioContent() {
               Explore our latest interior design projects and see how we
               transform spaces into beautiful, functional environments.
             </p>
+            <div className="mt-6">
+              <p
+                className={`text-sm ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                } text-center`}
+              >
+                Trusted by leading organizations including{" "}
+                <span className="font-semibold">Yahoo</span>,{" "}
+                <span className="font-semibold">Nokia</span>,{" "}
+                <span className="font-semibold">UST Global</span>,{" "}
+                <span className="font-semibold">Lexus</span>,{" "}
+                <span className="font-semibold">Technicolor</span>, and more
+                across South India
+              </p>
+            </div>
           </div>
 
           {/* Portfolio Filters and Controls */}
@@ -1333,11 +1528,11 @@ function DarpanInteriorsPortfolioContent() {
                   className={
                     projectFilter === category
                       ? isDarkMode
-                        ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
-                        : "bg-gradient-to-r from-amber-500 to-orange-600 text-white"
+                        ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-500 hover:from-amber-600 hover:to-orange-600"
+                        : "bg-gradient-to-r from-amber-500 to-orange-600 text-white border-amber-500 hover:from-amber-600 hover:to-orange-700"
                       : isDarkMode
-                      ? "border-gray-600 text-gray-300 hover:bg-gray-800"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      ? "border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white hover:border-gray-500"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
                   }
                 >
                   {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -1743,10 +1938,10 @@ function DarpanInteriorsPortfolioContent() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-20">
+      {/* Credentials & Client Trust Section */}
+      <section id="credentials" className="py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center space-y-4 mb-16">
+          <div className="text-center space-y-4 mb-12">
             <Badge
               variant="secondary"
               className={`${
@@ -1755,14 +1950,14 @@ function DarpanInteriorsPortfolioContent() {
                   : "bg-amber-500/20 text-amber-600 border-amber-500/30"
               } border`}
             >
-              Client Testimonials
+              Professional Recognition
             </Badge>
             <h2
               className={`text-3xl md:text-4xl font-bold ${
                 isDarkMode ? "text-white" : "text-gray-900"
               }`}
             >
-              What Our{" "}
+              Our{" "}
               <span
                 className={`${
                   isDarkMode
@@ -1770,7 +1965,7 @@ function DarpanInteriorsPortfolioContent() {
                     : "bg-gradient-to-r from-amber-500 to-orange-600"
                 } bg-clip-text text-transparent`}
               >
-                Clients Say
+                Credentials & Client Trust
               </span>
             </h2>
             <p
@@ -1778,302 +1973,581 @@ function DarpanInteriorsPortfolioContent() {
                 isDarkMode ? "text-gray-300" : "text-gray-600"
               } max-w-3xl mx-auto`}
             >
-              Don't just take our word for it. Here's what our satisfied clients
-              have to say about their experience working with Darpan Interiors.
+              Proven expertise backed by professional certifications and client
+              satisfaction
             </p>
           </div>
 
-          {/* Loading State */}
-          {testimonialsLoading && (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto"></div>
-              <p
-                className={`mt-4 ${
-                  isDarkMode ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                Loading testimonials...
-              </p>
-            </div>
-          )}
-
-          {/* Empty State */}
-          {!testimonialsLoading && testimonials.length === 0 && (
-            <div className="text-center py-12">
-              <Quote
-                className={`h-16 w-16 ${
-                  isDarkMode ? "text-gray-600" : "text-gray-400"
-                } mx-auto mb-4 opacity-50`}
-              />
-              <p
-                className={`text-lg ${
-                  isDarkMode ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                No testimonials available yet.
-              </p>
-            </div>
-          )}
-
-          {/* Testimonials Carousel */}
-          {!testimonialsLoading && testimonials.length > 0 && (
-            <div
-              className="relative max-w-4xl mx-auto"
-              ref={testimonialCardRef}
+          {/* Tab Buttons */}
+          <div className="flex justify-center gap-4 mb-12">
+            <Button
+              onClick={() => setCredentialsTab("certifications")}
+              size="lg"
+              variant={
+                credentialsTab === "certifications" ? "default" : "outline"
+              }
+              className={
+                credentialsTab === "certifications"
+                  ? isDarkMode
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600"
+                    : "bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700"
+                  : isDarkMode
+                  ? "border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+              }
             >
-              <Card
-                className={`${
-                  isDarkMode
-                    ? "bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700"
-                    : "bg-gradient-to-br from-white to-gray-50 border-gray-200"
-                } shadow-xl min-h-[500px] md:min-h-[480px] flex flex-col`}
-              >
-                <CardContent className="p-8 md:p-12 flex-1 flex flex-col justify-center">
-                  <div className="text-center space-y-6">
-                    <Quote
-                      className={`h-12 w-12 ${
-                        isDarkMode ? "text-amber-400" : "text-amber-600"
-                      } mx-auto opacity-50`}
-                    />
-                    {/* Fixed height container for testimonial content */}
-                    <div className="flex flex-col items-center justify-start">
-                      <div
-                        className={`relative ${
-                          isTestimonialExpanded
-                            ? ""
-                            : "max-h-[280px] md:max-h-[260px]"
-                        } overflow-hidden transition-all duration-300`}
-                      >
-                        <blockquote
-                          className={`text-xl md:text-2xl font-medium leading-relaxed ${
-                            isDarkMode ? "text-gray-100" : "text-gray-800"
-                          }`}
+              <Award className="h-5 w-5 mr-2" />
+              Certifications ({certificates.length})
+            </Button>
+            <Button
+              onClick={() => setCredentialsTab("testimonials")}
+              size="lg"
+              variant={
+                credentialsTab === "testimonials" ? "default" : "outline"
+              }
+              className={
+                credentialsTab === "testimonials"
+                  ? isDarkMode
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600"
+                    : "bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700"
+                  : isDarkMode
+                  ? "border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+              }
+            >
+              <MessageSquare className="h-5 w-5 mr-2" />
+              Client Reviews ({testimonials.length})
+            </Button>
+          </div>
+
+          {/* Certifications Tab Content */}
+          {credentialsTab === "certifications" && (
+            <div className="animate-in fade-in duration-500">
+              {/* Loading State */}
+              {certificatesLoading && (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto"></div>
+                  <p
+                    className={`mt-4 ${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    Loading certifications...
+                  </p>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!certificatesLoading && certificates.length === 0 && (
+                <div className="text-center py-12">
+                  <Award
+                    className={`h-16 w-16 ${
+                      isDarkMode ? "text-gray-600" : "text-gray-400"
+                    } mx-auto mb-4 opacity-50`}
+                  />
+                  <p
+                    className={`text-lg ${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    Certifications coming soon.
+                  </p>
+                </div>
+              )}
+
+              {/* Certificates Carousel */}
+              {!certificatesLoading && certificates.length > 0 && (
+                <div className="relative max-w-5xl mx-auto">
+                  <Card
+                    className={`${
+                      isDarkMode
+                        ? "bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700"
+                        : "bg-gradient-to-br from-white to-gray-50 border-gray-200"
+                    } shadow-xl overflow-hidden`}
+                  >
+                    <CardContent className="p-8 md:p-12">
+                      <div className="space-y-6">
+                        {/* Certificate Image - Clickable for zoom */}
+                        <div
+                          className="relative w-full h-[400px] md:h-[500px] rounded-lg overflow-hidden cursor-pointer group"
+                          onClick={() =>
+                            setSelectedCertificateImage(
+                              certificates[currentCertificate]?.image?.url ||
+                                null
+                            )
+                          }
                         >
-                          "{testimonials[currentTestimonial]?.content}"
-                        </blockquote>
-                        {/* Gradient fade effect when collapsed */}
-                        {!isTestimonialExpanded &&
-                          truncateText(
-                            testimonials[currentTestimonial]?.content || "",
-                            300
-                          ).isTruncated && (
-                            <div
-                              className={`absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t ${
-                                isDarkMode
-                                  ? "from-gray-800 via-gray-800/80 to-transparent"
-                                  : "from-white via-white/80 to-transparent"
-                              }`}
-                            />
+                          {certificates[currentCertificate]?.image?.url && (
+                            <>
+                              <OptimizedImage
+                                src={certificates[currentCertificate].image.url}
+                                alt={certificates[currentCertificate].title}
+                                fill
+                                className="object-contain group-hover:scale-105 transition-transform duration-300"
+                              />
+                              {/* Zoom overlay hint */}
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 flex items-center justify-center">
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                  <Eye className="h-12 w-12 text-white drop-shadow-lg" />
+                                </div>
+                              </div>
+                            </>
                           )}
-                      </div>
-                      {truncateText(
-                        testimonials[currentTestimonial]?.content || "",
-                        300
-                      ).isTruncated && (
-                        <button
-                          onClick={handleTestimonialToggle}
-                          className={`mt-4 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                            isDarkMode
-                              ? "text-amber-400 hover:text-amber-300 hover:bg-gray-700/50"
-                              : "text-amber-600 hover:text-amber-700 hover:bg-gray-100"
-                          }`}
-                        >
-                          {isTestimonialExpanded
-                            ? "Read less ↑"
-                            : "Read more ↓"}
-                        </button>
-                      )}
-                    </div>
-                    {/* Author info section - Horizontal layout */}
-                    <div className="flex items-center justify-center gap-6 md:gap-8 mt-2 flex-wrap">
-                      {/* Avatar and details */}
-                      <div className="flex items-center gap-4">
-                        {/* Testimonial Avatar */}
-                        {testimonials[currentTestimonial]?.image && (
-                          <div className="testimonial-avatar-container">
-                            <img
-                              src={
-                                typeof testimonials[currentTestimonial]
-                                  ?.image === "string"
-                                  ? testimonials[currentTestimonial]?.image
-                                  : testimonials[currentTestimonial]?.image?.url
-                              }
-                              alt={testimonials[currentTestimonial]?.name}
-                              className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover object-center"
-                              style={{
-                                minWidth: "80px",
-                                minHeight: "80px",
-                                boxShadow: isDarkMode
-                                  ? "0 0 0 2px rgba(245, 158, 11, 0.1), 0 0 15px rgba(245, 158, 11, 0.15), 0 0 30px rgba(245, 158, 11, 0.08)"
-                                  : "0 0 0 2px rgba(251, 191, 36, 0.15), 0 0 15px rgba(245, 158, 11, 0.12), 0 0 30px rgba(245, 158, 11, 0.06)",
-                              }}
-                            />
-                          </div>
-                        )}
-                        {/* Fallback Avatar if no image */}
-                        {!testimonials[currentTestimonial]?.image && (
-                          <Avatar
-                            className="h-20 w-20 md:h-24 md:w-24"
-                            style={{
-                              minWidth: "80px",
-                              minHeight: "80px",
-                              boxShadow: isDarkMode
-                                ? "0 0 0 2px rgba(245, 158, 11, 0.1), 0 0 15px rgba(245, 158, 11, 0.15), 0 0 30px rgba(245, 158, 11, 0.08)"
-                                : "0 0 0 2px rgba(251, 191, 36, 0.15), 0 0 15px rgba(245, 158, 11, 0.12), 0 0 30px rgba(245, 158, 11, 0.06)",
-                            }}
-                          >
-                            <AvatarFallback
-                              className={`${
-                                isDarkMode
-                                  ? "bg-gradient-to-br from-amber-500 to-orange-500"
-                                  : "bg-gradient-to-br from-amber-500 to-orange-600"
-                              } text-white text-2xl md:text-3xl font-semibold`}
-                            >
-                              {testimonials[currentTestimonial]?.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
-                        <div className="text-left space-y-1">
-                          <div
-                            className={`text-lg md:text-xl font-bold ${
+                        </div>
+
+                        {/* Certificate Details */}
+                        <div className="text-center space-y-4">
+                          <h3
+                            className={`text-2xl md:text-3xl font-bold ${
                               isDarkMode ? "text-white" : "text-gray-900"
                             }`}
                           >
-                            {testimonials[currentTestimonial]?.name}
+                            {certificates[currentCertificate]?.title}
+                          </h3>
+
+                          {certificates[currentCertificate]?.description && (
+                            <p
+                              className={`text-base md:text-lg leading-relaxed max-w-3xl mx-auto ${
+                                isDarkMode ? "text-gray-300" : "text-gray-600"
+                              }`}
+                            >
+                              {certificates[currentCertificate]?.description}
+                            </p>
+                          )}
+
+                          {/* Issuing Organization & Date */}
+                          <div className="flex items-center justify-center gap-4 flex-wrap">
+                            <div
+                              className={`px-4 py-2 rounded-lg ${
+                                isDarkMode
+                                  ? "bg-amber-500/10 border border-amber-500/20"
+                                  : "bg-amber-50 border border-amber-200"
+                              }`}
+                            >
+                              <p
+                                className={`text-sm font-medium ${
+                                  isDarkMode
+                                    ? "text-amber-400"
+                                    : "text-amber-600"
+                                }`}
+                              >
+                                {
+                                  certificates[currentCertificate]
+                                    ?.issuingOrganization
+                                }
+                              </p>
+                            </div>
+                            <div
+                              className={`px-4 py-2 rounded-lg ${
+                                isDarkMode ? "bg-gray-700/50" : "bg-gray-100"
+                              }`}
+                            >
+                              <p
+                                className={`text-sm ${
+                                  isDarkMode ? "text-gray-300" : "text-gray-600"
+                                }`}
+                              >
+                                {new Date(
+                                  certificates[currentCertificate]?.issueDate
+                                ).toLocaleDateString("en-US", {
+                                  month: "long",
+                                  year: "numeric",
+                                })}
+                              </p>
+                            </div>
                           </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Certificate Controls */}
+                  <div className="flex items-center justify-center space-x-4 mt-8">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        handleManualCertificateChange(
+                          (currentCertificate - 1 + certificates.length) %
+                            certificates.length
+                        )
+                      }
+                      className={`${
+                        isDarkMode
+                          ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <SkipBack className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        setIsCertificatePlaying(!isCertificatePlaying)
+                      }
+                      className={`${
+                        isDarkMode
+                          ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {isCertificatePlaying ? (
+                        <Pause className="h-4 w-4" />
+                      ) : (
+                        <Play className="h-4 w-4" />
+                      )}
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        handleManualCertificateChange(
+                          (currentCertificate + 1) % certificates.length
+                        )
+                      }
+                      className={`${
+                        isDarkMode
+                          ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <SkipForward className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Certificate Indicators */}
+                  <div className="flex items-center justify-center space-x-2 mt-6">
+                    {certificates.map((_: any, index: number) => (
+                      <button
+                        key={index}
+                        onClick={() => handleManualCertificateChange(index)}
+                        className={`w-2 h-2 rounded-full transition-all ${
+                          index === currentCertificate
+                            ? isDarkMode
+                              ? "bg-amber-400 w-8"
+                              : "bg-amber-600 w-8"
+                            : isDarkMode
+                            ? "bg-gray-600 hover:bg-gray-500"
+                            : "bg-gray-300 hover:bg-gray-400"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Testimonials Tab Content */}
+          {credentialsTab === "testimonials" && (
+            <div className="animate-in fade-in duration-500">
+              {/* Loading State */}
+              {testimonialsLoading && (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto"></div>
+                  <p
+                    className={`mt-4 ${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    Loading testimonials...
+                  </p>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!testimonialsLoading && testimonials.length === 0 && (
+                <div className="text-center py-12">
+                  <Quote
+                    className={`h-16 w-16 ${
+                      isDarkMode ? "text-gray-600" : "text-gray-400"
+                    } mx-auto mb-4 opacity-50`}
+                  />
+                  <p
+                    className={`text-lg ${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    No testimonials available yet.
+                  </p>
+                </div>
+              )}
+
+              {/* Testimonials Carousel */}
+              {!testimonialsLoading && testimonials.length > 0 && (
+                <div
+                  className="relative max-w-4xl mx-auto"
+                  ref={testimonialCardRef}
+                >
+                  <Card
+                    className={`${
+                      isDarkMode
+                        ? "bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700"
+                        : "bg-gradient-to-br from-white to-gray-50 border-gray-200"
+                    } shadow-xl min-h-[500px] md:min-h-[480px] flex flex-col`}
+                  >
+                    <CardContent className="p-8 md:p-12 flex-1 flex flex-col justify-center">
+                      <div className="text-center space-y-6">
+                        <Quote
+                          className={`h-12 w-12 ${
+                            isDarkMode ? "text-amber-400" : "text-amber-600"
+                          } mx-auto opacity-50`}
+                        />
+                        {/* Fixed height container for testimonial content */}
+                        <div className="flex flex-col items-center justify-start">
                           <div
-                            className={`text-sm md:text-base font-medium ${
-                              isDarkMode ? "text-gray-300" : "text-gray-700"
+                            className={`relative ${
+                              isTestimonialExpanded
+                                ? ""
+                                : "max-h-[280px] md:max-h-[260px]"
+                            } overflow-hidden transition-all duration-300`}
+                          >
+                            <blockquote
+                              className={`text-xl md:text-2xl font-medium leading-relaxed ${
+                                isDarkMode ? "text-gray-100" : "text-gray-800"
+                              }`}
+                            >
+                              "{testimonials[currentTestimonial]?.content}"
+                            </blockquote>
+                            {/* Gradient fade effect when collapsed */}
+                            {!isTestimonialExpanded &&
+                              truncateText(
+                                testimonials[currentTestimonial]?.content || "",
+                                300
+                              ).isTruncated && (
+                                <div
+                                  className={`absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t ${
+                                    isDarkMode
+                                      ? "from-gray-800 via-gray-800/80 to-transparent"
+                                      : "from-white via-white/80 to-transparent"
+                                  }`}
+                                />
+                              )}
+                          </div>
+                          {truncateText(
+                            testimonials[currentTestimonial]?.content || "",
+                            300
+                          ).isTruncated && (
+                            <button
+                              onClick={handleTestimonialToggle}
+                              className={`mt-4 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                                isDarkMode
+                                  ? "text-amber-400 hover:text-amber-300 hover:bg-gray-700/50"
+                                  : "text-amber-600 hover:text-amber-700 hover:bg-gray-100"
+                              }`}
+                            >
+                              {isTestimonialExpanded
+                                ? "Read less ↑"
+                                : "Read more ↓"}
+                            </button>
+                          )}
+                        </div>
+                        {/* Author info section - Horizontal layout */}
+                        <div className="flex items-center justify-center gap-6 md:gap-8 mt-2 flex-wrap">
+                          {/* Avatar and details */}
+                          <div className="flex items-center gap-4">
+                            {/* Testimonial Avatar */}
+                            {testimonials[currentTestimonial]?.image && (
+                              <div className="testimonial-avatar-container">
+                                <img
+                                  src={
+                                    typeof testimonials[currentTestimonial]
+                                      ?.image === "string"
+                                      ? testimonials[currentTestimonial]?.image
+                                      : testimonials[currentTestimonial]?.image
+                                          ?.url
+                                  }
+                                  alt={testimonials[currentTestimonial]?.name}
+                                  className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover object-center"
+                                  style={{
+                                    minWidth: "80px",
+                                    minHeight: "80px",
+                                    boxShadow: isDarkMode
+                                      ? "0 0 0 2px rgba(245, 158, 11, 0.1), 0 0 15px rgba(245, 158, 11, 0.15), 0 0 30px rgba(245, 158, 11, 0.08)"
+                                      : "0 0 0 2px rgba(251, 191, 36, 0.15), 0 0 15px rgba(245, 158, 11, 0.12), 0 0 30px rgba(245, 158, 11, 0.06)",
+                                  }}
+                                />
+                              </div>
+                            )}
+                            {/* Fallback Avatar if no image */}
+                            {!testimonials[currentTestimonial]?.image && (
+                              <Avatar
+                                className="h-20 w-20 md:h-24 md:w-24"
+                                style={{
+                                  minWidth: "80px",
+                                  minHeight: "80px",
+                                  boxShadow: isDarkMode
+                                    ? "0 0 0 2px rgba(245, 158, 11, 0.1), 0 0 15px rgba(245, 158, 11, 0.15), 0 0 30px rgba(245, 158, 11, 0.08)"
+                                    : "0 0 0 2px rgba(251, 191, 36, 0.15), 0 0 15px rgba(245, 158, 11, 0.12), 0 0 30px rgba(245, 158, 11, 0.06)",
+                                }}
+                              >
+                                <AvatarFallback
+                                  className={`${
+                                    isDarkMode
+                                      ? "bg-gradient-to-br from-amber-500 to-orange-500"
+                                      : "bg-gradient-to-br from-amber-500 to-orange-600"
+                                  } text-white text-2xl md:text-3xl font-semibold`}
+                                >
+                                  {testimonials[currentTestimonial]?.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                            )}
+                            <div className="text-left space-y-1">
+                              <div
+                                className={`text-lg md:text-xl font-bold ${
+                                  isDarkMode ? "text-white" : "text-gray-900"
+                                }`}
+                              >
+                                {testimonials[currentTestimonial]?.name}
+                              </div>
+                              <div
+                                className={`text-sm md:text-base font-medium ${
+                                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                                }`}
+                              >
+                                {testimonials[currentTestimonial]?.occupation}
+                              </div>
+                              {testimonials[currentTestimonial]
+                                ?.projectType && (
+                                <div
+                                  className={`text-xs md:text-sm flex items-center gap-2 ${
+                                    isDarkMode
+                                      ? "text-amber-400"
+                                      : "text-amber-600"
+                                  }`}
+                                >
+                                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-current"></span>
+                                  {
+                                    testimonials[currentTestimonial]
+                                      ?.projectType
+                                  }
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Divider - Vertical line */}
+                          <div
+                            className={`hidden md:block h-16 w-px ${
+                              isDarkMode ? "bg-gray-600" : "bg-gray-300"
+                            }`}
+                          ></div>
+
+                          {/* Star Rating - Prominent on the right */}
+                          <div
+                            className={`flex flex-col items-center space-y-2 px-6 py-3 rounded-xl ${
+                              isDarkMode
+                                ? "bg-amber-500/10 border border-amber-500/20"
+                                : "bg-amber-50 border border-amber-200"
                             }`}
                           >
-                            {testimonials[currentTestimonial]?.occupation}
-                          </div>
-                          {testimonials[currentTestimonial]?.projectType && (
-                            <div
-                              className={`text-xs md:text-sm flex items-center gap-2 ${
+                            <StarRating
+                              rating={
+                                testimonials[currentTestimonial]?.rating || 0
+                              }
+                              readonly={true}
+                              size="lg"
+                              className="scale-110"
+                            />
+                            <span
+                              className={`text-base md:text-lg font-bold ${
                                 isDarkMode ? "text-amber-400" : "text-amber-600"
                               }`}
                             >
-                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-current"></span>
-                              {testimonials[currentTestimonial]?.projectType}
-                            </div>
-                          )}
+                              {testimonials[
+                                currentTestimonial
+                              ]?.rating?.toFixed(1) || "0.0"}{" "}
+                              / 5.0
+                            </span>
+                          </div>
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
 
-                      {/* Divider - Vertical line */}
-                      <div
-                        className={`hidden md:block h-16 w-px ${
-                          isDarkMode ? "bg-gray-600" : "bg-gray-300"
-                        }`}
-                      ></div>
+                  {/* Testimonial Controls */}
+                  <div className="flex items-center justify-center space-x-4 mt-8">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        handleManualTestimonialChange(
+                          (currentTestimonial - 1 + testimonials.length) %
+                            testimonials.length
+                        )
+                      }
+                      className={`${
+                        isDarkMode
+                          ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <SkipBack className="h-4 w-4" />
+                    </Button>
 
-                      {/* Star Rating - Prominent on the right */}
-                      <div
-                        className={`flex flex-col items-center space-y-2 px-6 py-3 rounded-xl ${
-                          isDarkMode
-                            ? "bg-amber-500/10 border border-amber-500/20"
-                            : "bg-amber-50 border border-amber-200"
-                        }`}
-                      >
-                        <StarRating
-                          rating={testimonials[currentTestimonial]?.rating || 0}
-                          readonly={true}
-                          size="lg"
-                          className="scale-110"
-                        />
-                        <span
-                          className={`text-base md:text-lg font-bold ${
-                            isDarkMode ? "text-amber-400" : "text-amber-600"
-                          }`}
-                        >
-                          {testimonials[currentTestimonial]?.rating?.toFixed(
-                            1
-                          ) || "0.0"}{" "}
-                          / 5.0
-                        </span>
-                      </div>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        setIsTestimonialPlaying(!isTestimonialPlaying)
+                      }
+                      className={`${
+                        isDarkMode
+                          ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {isTestimonialPlaying ? (
+                        <Pause className="h-4 w-4" />
+                      ) : (
+                        <Play className="h-4 w-4" />
+                      )}
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        handleManualTestimonialChange(
+                          (currentTestimonial + 1) % testimonials.length
+                        )
+                      }
+                      className={`${
+                        isDarkMode
+                          ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <SkipForward className="h-4 w-4" />
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Testimonial Controls */}
-              <div className="flex items-center justify-center space-x-4 mt-8">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() =>
-                    handleManualTestimonialChange(
-                      (currentTestimonial - 1 + testimonials.length) %
-                        testimonials.length
-                    )
-                  }
-                  className={`${
-                    isDarkMode
-                      ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <SkipBack className="h-4 w-4" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setIsTestimonialPlaying(!isTestimonialPlaying)}
-                  className={`${
-                    isDarkMode
-                      ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  {isTestimonialPlaying ? (
-                    <Pause className="h-4 w-4" />
-                  ) : (
-                    <Play className="h-4 w-4" />
-                  )}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() =>
-                    handleManualTestimonialChange(
-                      (currentTestimonial + 1) % testimonials.length
-                    )
-                  }
-                  className={`${
-                    isDarkMode
-                      ? "border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <SkipForward className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Testimonial Indicators */}
-              <div className="flex items-center justify-center space-x-2 mt-6">
-                {testimonials.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleManualTestimonialChange(index)}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      index === currentTestimonial
-                        ? isDarkMode
-                          ? "bg-amber-400 w-8"
-                          : "bg-amber-600 w-8"
-                        : isDarkMode
-                        ? "bg-gray-600 hover:bg-gray-500"
-                        : "bg-gray-300 hover:bg-gray-400"
-                    }`}
-                  />
-                ))}
-              </div>
+                  {/* Testimonial Indicators */}
+                  <div className="flex items-center justify-center space-x-2 mt-6">
+                    {testimonials.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleManualTestimonialChange(index)}
+                        className={`w-2 h-2 rounded-full transition-all ${
+                          index === currentTestimonial
+                            ? isDarkMode
+                              ? "bg-amber-400 w-8"
+                              : "bg-amber-600 w-8"
+                            : isDarkMode
+                            ? "bg-gray-600 hover:bg-gray-500"
+                            : "bg-gray-300 hover:bg-gray-400"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -2370,6 +2844,13 @@ function DarpanInteriorsPortfolioContent() {
                           isDarkMode ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
+                        darpaninteriors1@gmail.com
+                      </p>
+                      <p
+                        className={`${
+                          isDarkMode ? "text-gray-400" : "text-gray-600"
+                        } text-sm mt-1`}
+                      >
                         surjit@darpaninteriors.com
                       </p>
                       <p
@@ -2440,9 +2921,9 @@ function DarpanInteriorsPortfolioContent() {
                           isDarkMode ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        GF No 4, 2nd Main, Kogilu Main Road
+                        #04, 2nd Main, Kogilu Main Road
                         <br />
-                        Srinivasapura, Yelahanka, Bengaluru North - 560064
+                        Srinivaspura, Yelahanka, Bangalore - 560064
                       </p>
                       <p
                         className={`text-sm ${
@@ -2810,6 +3291,302 @@ function DarpanInteriorsPortfolioContent() {
           </div>
         </div>
       </footer>
+
+      {/* Organization Chart Modal */}
+      <Dialog open={showOrgChart} onOpenChange={setShowOrgChart}>
+        <DialogContent
+          className={`max-w-4xl max-h-[85vh] overflow-y-auto ${
+            isDarkMode
+              ? "bg-gray-900 border-gray-700 [&>button]:text-gray-400 [&>button]:hover:text-white [&>button]:hover:bg-gray-800"
+              : "bg-white"
+          }`}
+        >
+          <DialogHeader>
+            <DialogTitle
+              className={`flex items-center space-x-3 text-2xl font-light ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              <Users
+                className={`h-6 w-6 ${
+                  isDarkMode ? "text-amber-400" : "text-amber-600"
+                }`}
+              />
+              <span>Our Team Structure</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6 mt-4">
+            {/* Leadership */}
+            <div>
+              <h4
+                className={`font-semibold mb-3 flex items-center space-x-2 ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                <Shield
+                  className={`h-5 w-5 ${
+                    isDarkMode ? "text-amber-400" : "text-amber-600"
+                  }`}
+                />
+                <span>Leadership</span>
+              </h4>
+              <div
+                className={`p-4 rounded-lg ${
+                  isDarkMode ? "bg-gray-800/50" : "bg-gray-50"
+                }`}
+              >
+                <div
+                  className={`font-medium ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  Managing Director
+                </div>
+                <div
+                  className={`text-sm ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  Mr. Surjit Singh
+                </div>
+                <div
+                  className={`text-sm flex items-center mt-1 ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  <Phone className="h-3 w-3 mr-1" />
+                  <a
+                    href="tel:+919535890510"
+                    className={`${
+                      isDarkMode
+                        ? "text-gray-300 hover:text-amber-400"
+                        : "text-gray-600 hover:text-amber-600"
+                    }`}
+                  >
+                    +91 9535890510
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Operations Team */}
+            <div>
+              <h4
+                className={`font-semibold mb-3 flex items-center space-x-2 ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                <Briefcase
+                  className={`h-5 w-5 ${
+                    isDarkMode ? "text-amber-400" : "text-amber-600"
+                  }`}
+                />
+                <span>Operations</span>
+              </h4>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div
+                  className={`p-3 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/50" : "bg-gray-50"
+                  }`}
+                >
+                  <div
+                    className={`text-sm font-medium ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Accounts
+                  </div>
+                  <div
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Janavi - M-8310059057
+                  </div>
+                </div>
+                <div
+                  className={`p-3 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/50" : "bg-gray-50"
+                  }`}
+                >
+                  <div
+                    className={`text-sm font-medium ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Purchase
+                  </div>
+                  <div
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Rakshith - M-7411144867
+                  </div>
+                </div>
+                <div
+                  className={`p-3 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/50" : "bg-gray-50"
+                  }`}
+                >
+                  <div
+                    className={`text-sm font-medium ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Project Manager
+                  </div>
+                  <div
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Mr. Sagar - M-8792848827
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Technical Team */}
+            <div>
+              <h4
+                className={`font-semibold mb-3 flex items-center space-x-2 ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                <Zap
+                  className={`h-5 w-5 ${
+                    isDarkMode ? "text-amber-400" : "text-amber-600"
+                  }`}
+                />
+                <span>Technical Team</span>
+              </h4>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div
+                  className={`p-3 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/50" : "bg-gray-50"
+                  }`}
+                >
+                  <div
+                    className={`text-sm font-medium ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Site Engineers
+                  </div>
+                  <div
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    6 Engineers
+                  </div>
+                </div>
+                <div
+                  className={`p-3 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/50" : "bg-gray-50"
+                  }`}
+                >
+                  <div
+                    className={`text-sm font-medium ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Project Engineer
+                  </div>
+                  <div
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Mr. Rahul - M-6207550793
+                  </div>
+                </div>
+                <div
+                  className={`p-3 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/50" : "bg-gray-50"
+                  }`}
+                >
+                  <div
+                    className={`text-sm font-medium ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    MEP Engineer
+                  </div>
+                  <div
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Ahmed - M-7776012754
+                  </div>
+                </div>
+                <div
+                  className={`p-3 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/50" : "bg-gray-50"
+                  }`}
+                >
+                  <div
+                    className={`text-sm font-medium ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Factory In-Charge
+                  </div>
+                  <div
+                    className={`text-xs ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Ramsajan - M-6360163007
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Support Staff */}
+            <div>
+              <h4
+                className={`font-semibold mb-3 ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Support Staff
+              </h4>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div
+                  className={`p-3 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/50" : "bg-gray-50"
+                  }`}
+                >
+                  <div
+                    className={`text-sm ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Safety Officers: 2
+                  </div>
+                </div>
+                <div
+                  className={`p-3 rounded-lg ${
+                    isDarkMode ? "bg-gray-800/50" : "bg-gray-50"
+                  }`}
+                >
+                  <div
+                    className={`text-sm ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    Housekeeping: 1
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -2818,13 +3595,15 @@ export default function DarpanInteriorsPortfolio() {
   return (
     <ProjectsProvider>
       <TestimonialsProvider>
-        <SiteImagesProvider>
-          <StatsProvider>
-            <ThemeProvider>
-              <DarpanInteriorsPortfolioContent />
-            </ThemeProvider>
-          </StatsProvider>
-        </SiteImagesProvider>
+        <CertificatesProvider>
+          <SiteImagesProvider>
+            <StatsProvider>
+              <ThemeProvider>
+                <DarpanInteriorsPortfolioContent />
+              </ThemeProvider>
+            </StatsProvider>
+          </SiteImagesProvider>
+        </CertificatesProvider>
       </TestimonialsProvider>
     </ProjectsProvider>
   );
