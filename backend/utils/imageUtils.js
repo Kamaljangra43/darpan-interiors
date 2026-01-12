@@ -83,10 +83,22 @@ const formatProjectWithImages = (project) => {
   return plainProject;
 };
 
+// Delete image from Cloudinary
+const deleteFromCloudinary = async (publicId) => {
+  try {
+    if (!publicId) return;
+    await cloudinary.uploader.destroy(publicId);
+  } catch (error) {
+    console.error("Error deleting from Cloudinary:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   getOptimizedImageUrl,
   getResponsiveImageUrls,
   formatProjectWithImages,
   optimizeImage,
   extractPublicId,
+  deleteFromCloudinary,
 };

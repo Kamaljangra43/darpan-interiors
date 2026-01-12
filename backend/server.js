@@ -14,6 +14,7 @@ const testimonialRoutes = require("./routes/testimonialRoutes");
 const statsRoutes = require("./routes/statsRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
 const siteSettingsRoutes = require("./routes/siteSettingsRoutes");
+const certificateRoutes = require("./routes/certificateRoutes");
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/site-settings", siteSettingsRoutes);
+app.use("/api/certificates", certificateRoutes);
 app.use("/api/site-images", require("./routes/siteImageRoutes"));
 app.use("/api/upload", require("./routes/uploadRoutes"));
 

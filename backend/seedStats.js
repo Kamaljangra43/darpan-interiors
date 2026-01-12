@@ -6,27 +6,27 @@ dotenv.config();
 
 const statsData = [
   {
-    label: "Projects Completed",
-    value: "250+",
-    icon: "CheckCircle",
+    label: "Established",
+    value: "2017",
+    icon: "Award",
     order: 1,
   },
   {
-    label: "Happy Clients",
-    value: "150+",
-    icon: "Users",
+    label: "Years Experience",
+    value: "21+",
+    icon: "TrendingUp",
     order: 2,
   },
   {
-    label: "Years Experience",
-    value: "15+",
-    icon: "Award",
+    label: "Coverage",
+    value: "Pan India",
+    icon: "MapPin",
     order: 3,
   },
   {
-    label: "Design Awards",
-    value: "25+",
-    icon: "Trophy",
+    label: "Team Members",
+    value: "135+",
+    icon: "Users",
     order: 4,
   },
 ];
