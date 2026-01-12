@@ -27,6 +27,9 @@ import {
   Star,
   Settings,
   Save,
+  Award,
+  ExternalLink,
+  Calendar,
 } from "lucide-react";
 import type { Project, Testimonial } from "@/types/project";
 import apiClient from "@/lib/api";
@@ -131,6 +134,42 @@ export default function AdminDashboardPage() {
 
   // Loading state for project operations
   const [isSavingProject, setIsSavingProject] = useState(false);
+
+  // Certificate states
+  const [certificates, setCertificates] = useState<any[]>([]);
+  const [showAddCertificate, setShowAddCertificate] = useState(false);
+  const [editingCertificate, setEditingCertificate] = useState<any | null>(
+    null
+  );
+  const [showEditCertificate, setShowEditCertificate] = useState(false);
+  const [newCertificate, setNewCertificate] = useState({
+    title: "",
+    issuingOrganization: "",
+    issueDate: "",
+    expiryDate: "",
+    credentialId: "",
+    credentialUrl: "",
+    description: "",
+    image: { url: "", publicId: "" },
+    holderName: "Darpan Interiors",
+    category: "company",
+    isActive: true,
+    displayOrder: 0,
+  });
+  const [editCertificateData, setEditCertificateData] = useState({
+    title: "",
+    issuingOrganization: "",
+    issueDate: "",
+    expiryDate: "",
+    credentialId: "",
+    credentialUrl: "",
+    description: "",
+    image: { url: "", publicId: "" },
+    holderName: "",
+    category: "company",
+    isActive: true,
+    displayOrder: 0,
+  });
 
   // Helper function to toggle featured status
   const toggleFeaturedImage = (index: number, featured: boolean) => {
@@ -489,7 +528,7 @@ export default function AdminDashboardPage() {
   const handleTestimonialImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = e.target.files?.[0];
+    const file = e.target?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -497,6 +536,161 @@ export default function AdminDashboardPage() {
           ...prev,
           image: e.target?.result as string,
         }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Certificate functions
+  useEffect(() => {
+    const fetchCertificates = async () => {
+      try {
+        const response = await apiClient.get("/certificates");
+        setCertificates(response.data);
+      } catch (error) {
+        console.error("Error fetching certificates:", error);
+      }
+    };
+
+    if (isAdmin) {
+      fetchCertificates();
+    }
+  }, [isAdmin]);
+
+  const handleAddCertificate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newCertificate.title) {
+      alert("Please fill in the certificate title.");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const response = await apiClient.post("/certificates", newCertificate);
+      setCertificates([...certificates, response.data]);
+      setNewCertificate({
+        title: "",
+        issuingOrganization: "",
+        issueDate: "",
+        expiryDate: "",
+        credentialId: "",
+        credentialUrl: "",
+        description: "",
+        image: { url: "", publicId: "" },
+        holderName: "Darpan Interiors",
+        category: "company",
+        isActive: true,
+        displayOrder: 0,
+      });
+      setShowAddCertificate(false);
+      alert("Certificate added successfully!");
+    } catch (error: any) {
+      console.error("Error adding certificate:", error);
+      alert(
+        `Failed to add certificate: ${
+          error?.response?.data?.message || error?.message
+        }`
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleEditCertificate = (certificate: any) => {
+    setEditingCertificate(certificate);
+    setEditCertificateData({
+      title: certificate.title,
+      issuingOrganization: certificate.issuingOrganization,
+      issueDate: certificate.issueDate
+        ? new Date(certificate.issueDate).toISOString().split("T")[0]
+        : "",
+      expiryDate: certificate.expiryDate
+        ? new Date(certificate.expiryDate).toISOString().split("T")[0]
+        : "",
+      credentialId: certificate.credentialId || "",
+      credentialUrl: certificate.credentialUrl || "",
+      description: certificate.description || "",
+      image: certificate.image || { url: "", publicId: "" },
+      holderName: certificate.holderName || "Darpan Interiors",
+      category: certificate.category || "company",
+      isActive:
+        certificate.isActive !== undefined ? certificate.isActive : true,
+      displayOrder: certificate.displayOrder || 0,
+    });
+    setShowEditCertificate(true);
+  };
+
+  const handleUpdateCertificate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingCertificate) return;
+
+    setIsUploading(true);
+    try {
+      const response = await apiClient.put(
+        `/certificates/${editingCertificate._id}`,
+        editCertificateData
+      );
+      setCertificates(
+        certificates.map((cert) =>
+          cert._id === editingCertificate._id ? response.data : cert
+        )
+      );
+      setShowEditCertificate(false);
+      setEditingCertificate(null);
+      alert("Certificate updated successfully!");
+    } catch (error: any) {
+      console.error("Error updating certificate:", error);
+      alert(
+        `Failed to update certificate: ${
+          error?.response?.data?.message || error?.message
+        }`
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteCertificate = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this certificate?")) return;
+
+    try {
+      await apiClient.delete(`/certificates/${id}`);
+      setCertificates(certificates.filter((cert) => cert._id !== id));
+      alert("Certificate deleted successfully!");
+    } catch (error: any) {
+      console.error("Error deleting certificate:", error);
+      alert(
+        `Failed to delete certificate: ${
+          error?.response?.data?.message || error?.message
+        }`
+      );
+    }
+  };
+
+  const handleCertificateImageUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    isEdit: boolean = false
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsUploading(true);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageData = e.target?.result as string;
+        if (isEdit) {
+          setEditCertificateData((prev) => ({
+            ...prev,
+            image: { url: imageData, publicId: "" },
+          }));
+        } else {
+          setNewCertificate((prev) => ({
+            ...prev,
+            image: { url: imageData, publicId: "" },
+          }));
+        }
+        setIsUploading(false);
       };
       reader.readAsDataURL(file);
     }
@@ -669,6 +863,13 @@ export default function AdminDashboardPage() {
             icon={<Wrench className="w-4 h-4" />}
           >
             Services
+          </TabButton>
+          <TabButton
+            active={activeTab === "certificates"}
+            onClick={() => setActiveTab("certificates")}
+            icon={<Award className="w-4 h-4" />}
+          >
+            Certificates
           </TabButton>
         </div>
 
@@ -1724,6 +1925,567 @@ export default function AdminDashboardPage() {
                 </ul>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* CERTIFICATES TAB */}
+        {activeTab === "certificates" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Certificates Management
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Manage company and professional certifications
+                </p>
+              </div>
+              <Button
+                onClick={() => setShowAddCertificate(true)}
+                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Certificate
+              </Button>
+            </div>
+
+            {/* Certificates Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {certificates.map((certificate) => (
+                <div
+                  key={certificate._id}
+                  className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  {/* Certificate Image */}
+                  {certificate.image?.url && (
+                    <div className="relative h-48 bg-gray-100">
+                      <Image
+                        src={certificate.image.url}
+                        alt={certificate.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+
+                  {/* Certificate Content */}
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-gray-900 line-clamp-2">
+                          {certificate.title}
+                        </h3>
+                        <p className="text-sm text-amber-600 font-medium">
+                          {certificate.issuingOrganization}
+                        </p>
+                      </div>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${
+                          certificate.isActive
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        {certificate.isActive ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+
+                    {certificate.description && (
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {certificate.description}
+                      </p>
+                    )}
+
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        <span>
+                          {new Date(certificate.issueDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {certificate.credentialUrl && (
+                        <a
+                          href={certificate.credentialUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Verify</span>
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                      <span className="text-xs px-2 py-1 bg-amber-50 text-amber-700 rounded">
+                        {certificate.category}
+                      </span>
+                      {certificate.holderName && (
+                        <span className="text-xs text-gray-500">
+                          {certificate.holderName}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-3">
+                      <Button
+                        onClick={() => handleEditCertificate(certificate)}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+                      >
+                        <Edit className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteCertificate(certificate._id)}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {certificates.length === 0 && (
+                <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-500">
+                  <Award className="w-16 h-16 mb-4 text-gray-300" />
+                  <p className="text-lg font-medium">No certificates yet</p>
+                  <p className="text-sm">
+                    Add your first certificate to get started
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Add Certificate Modal */}
+            {showAddCertificate && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+                <div className="bg-white rounded-lg p-6 w-full max-w-2xl my-8">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-gray-900">
+                      Add New Certificate
+                    </h3>
+                    <button
+                      onClick={() => setShowAddCertificate(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleAddCertificate} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Certificate Title *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={newCertificate.title}
+                          onChange={(e) =>
+                            setNewCertificate({
+                              ...newCertificate,
+                              title: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          placeholder="e.g., ISO 9001:2015 Certification"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Issuing Organization
+                        </label>
+                        <input
+                          type="text"
+                          value={newCertificate.issuingOrganization}
+                          onChange={(e) =>
+                            setNewCertificate({
+                              ...newCertificate,
+                              issuingOrganization: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          placeholder="e.g., International Organization for Standardization"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Issue Date
+                        </label>
+                        <input
+                          type="date"
+                          value={newCertificate.issueDate}
+                          onChange={(e) =>
+                            setNewCertificate({
+                              ...newCertificate,
+                              issueDate: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Expiry Date
+                        </label>
+                        <input
+                          type="date"
+                          value={newCertificate.expiryDate}
+                          onChange={(e) =>
+                            setNewCertificate({
+                              ...newCertificate,
+                              expiryDate: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Description (Optional)
+                        </label>
+                        <textarea
+                          value={newCertificate.description}
+                          onChange={(e) =>
+                            setNewCertificate({
+                              ...newCertificate,
+                              description: e.target.value,
+                            })
+                          }
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          placeholder="Brief description of the certification"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Holder Name
+                        </label>
+                        <input
+                          type="text"
+                          value={newCertificate.holderName}
+                          onChange={(e) =>
+                            setNewCertificate({
+                              ...newCertificate,
+                              holderName: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Display Order
+                        </label>
+                        <input
+                          type="number"
+                          value={newCertificate.displayOrder}
+                          onChange={(e) =>
+                            setNewCertificate({
+                              ...newCertificate,
+                              displayOrder: parseInt(e.target.value) || 0,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="newCertActive"
+                          checked={newCertificate.isActive}
+                          onChange={(e) =>
+                            setNewCertificate({
+                              ...newCertificate,
+                              isActive: e.target.checked,
+                            })
+                          }
+                          className="w-4 h-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
+                        />
+                        <label
+                          htmlFor="newCertActive"
+                          className="ml-2 text-sm text-gray-700"
+                        >
+                          Active (Show on website)
+                        </label>
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Certificate Image
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleCertificateImageUpload(e, false)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                        {newCertificate.image.url && (
+                          <div className="mt-2 relative w-32 h-32">
+                            <Image
+                              src={newCertificate.image.url}
+                              alt="Preview"
+                              fill
+                              className="object-cover rounded"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <Button
+                        type="submit"
+                        disabled={isUploading}
+                        className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                      >
+                        {isUploading ? "Adding..." : "Add Certificate"}
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setShowAddCertificate(false)}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Edit Certificate Modal */}
+            {showEditCertificate && editingCertificate && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+                <div className="bg-white rounded-lg p-6 w-full max-w-2xl my-8">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-gray-900">
+                      Edit Certificate
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setShowEditCertificate(false);
+                        setEditingCertificate(null);
+                      }}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <form
+                    onSubmit={handleUpdateCertificate}
+                    className="space-y-4"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Certificate Title *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={editCertificateData.title}
+                          onChange={(e) =>
+                            setEditCertificateData({
+                              ...editCertificateData,
+                              title: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Issuing Organization
+                        </label>
+                        <input
+                          type="text"
+                          value={editCertificateData.issuingOrganization}
+                          onChange={(e) =>
+                            setEditCertificateData({
+                              ...editCertificateData,
+                              issuingOrganization: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Issue Date
+                        </label>
+                        <input
+                          type="date"
+                          value={editCertificateData.issueDate}
+                          onChange={(e) =>
+                            setEditCertificateData({
+                              ...editCertificateData,
+                              issueDate: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Expiry Date
+                        </label>
+                        <input
+                          type="date"
+                          value={editCertificateData.expiryDate}
+                          onChange={(e) =>
+                            setEditCertificateData({
+                              ...editCertificateData,
+                              expiryDate: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Description (Optional)
+                        </label>
+                        <textarea
+                          value={editCertificateData.description}
+                          onChange={(e) =>
+                            setEditCertificateData({
+                              ...editCertificateData,
+                              description: e.target.value,
+                            })
+                          }
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Holder Name
+                        </label>
+                        <input
+                          type="text"
+                          value={editCertificateData.holderName}
+                          onChange={(e) =>
+                            setEditCertificateData({
+                              ...editCertificateData,
+                              holderName: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Display Order
+                        </label>
+                        <input
+                          type="number"
+                          value={editCertificateData.displayOrder}
+                          onChange={(e) =>
+                            setEditCertificateData({
+                              ...editCertificateData,
+                              displayOrder: parseInt(e.target.value) || 0,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="editCertActive"
+                          checked={editCertificateData.isActive}
+                          onChange={(e) =>
+                            setEditCertificateData({
+                              ...editCertificateData,
+                              isActive: e.target.checked,
+                            })
+                          }
+                          className="w-4 h-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
+                        />
+                        <label
+                          htmlFor="editCertActive"
+                          className="ml-2 text-sm text-gray-700"
+                        >
+                          Active (Show on website)
+                        </label>
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Certificate Image
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleCertificateImageUpload(e, true)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                        {editCertificateData.image.url && (
+                          <div className="mt-2 relative w-32 h-32">
+                            <Image
+                              src={editCertificateData.image.url}
+                              alt="Preview"
+                              fill
+                              className="object-cover rounded"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <Button
+                        type="submit"
+                        disabled={isUploading}
+                        className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                      >
+                        {isUploading ? "Updating..." : "Update Certificate"}
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setShowEditCertificate(false);
+                          setEditingCertificate(null);
+                        }}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

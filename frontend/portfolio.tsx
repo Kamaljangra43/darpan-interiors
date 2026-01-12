@@ -1978,15 +1978,15 @@ function DarpanInteriorsPortfolioContent() {
             </p>
           </div>
 
-          {/* Tab Buttons */}
-          <div className="flex justify-center gap-4 mb-12">
+          {/* Tab Buttons - Compact side-by-side for mobile */}
+          <div className="flex justify-center gap-2 sm:gap-4 mb-12 px-2">
             <Button
               onClick={() => setCredentialsTab("certifications")}
-              size="lg"
+              size="default"
               variant={
                 credentialsTab === "certifications" ? "default" : "outline"
               }
-              className={
+              className={`flex-1 max-w-[180px] sm:flex-none sm:max-w-none ${
                 credentialsTab === "certifications"
                   ? isDarkMode
                     ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600"
@@ -1994,18 +1994,20 @@ function DarpanInteriorsPortfolioContent() {
                   : isDarkMode
                   ? "border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white"
                   : "border-gray-300 text-gray-700 hover:bg-gray-50"
-              }
+              }`}
             >
-              <Award className="h-5 w-5 mr-2" />
-              Certifications ({certificates.length})
+              <Award className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+              <span className="text-xs sm:text-base whitespace-nowrap">
+                Certificates ({certificates.length})
+              </span>
             </Button>
             <Button
               onClick={() => setCredentialsTab("testimonials")}
-              size="lg"
+              size="default"
               variant={
                 credentialsTab === "testimonials" ? "default" : "outline"
               }
-              className={
+              className={`flex-1 max-w-[180px] sm:flex-none sm:max-w-none ${
                 credentialsTab === "testimonials"
                   ? isDarkMode
                     ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600"
@@ -2013,10 +2015,12 @@ function DarpanInteriorsPortfolioContent() {
                   : isDarkMode
                   ? "border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white"
                   : "border-gray-300 text-gray-700 hover:bg-gray-50"
-              }
+              }`}
             >
-              <MessageSquare className="h-5 w-5 mr-2" />
-              Client Reviews ({testimonials.length})
+              <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+              <span className="text-xs sm:text-base whitespace-nowrap">
+                Testimonials ({testimonials.length})
+              </span>
             </Button>
           </div>
 
@@ -3295,7 +3299,7 @@ function DarpanInteriorsPortfolioContent() {
       {/* Organization Chart Modal */}
       <Dialog open={showOrgChart} onOpenChange={setShowOrgChart}>
         <DialogContent
-          className={`max-w-4xl max-h-[85vh] overflow-y-auto ${
+          className={`max-w-4xl w-[92vw] sm:w-[85vw] md:w-full max-h-[85vh] overflow-y-auto ${
             isDarkMode
               ? "bg-gray-900 border-gray-700 [&>button]:text-gray-400 [&>button]:hover:text-white [&>button]:hover:bg-gray-800"
               : "bg-white"
@@ -3395,14 +3399,14 @@ function DarpanInteriorsPortfolioContent() {
                       isDarkMode ? "text-white" : "text-gray-900"
                     }`}
                   >
-                    Accounts
+                    Accounts Team
                   </div>
                   <div
                     className={`text-xs ${
                       isDarkMode ? "text-gray-300" : "text-gray-600"
                     }`}
                   >
-                    Janavi - M-8310059057
+                    Financial Management
                   </div>
                 </div>
                 <div
@@ -3415,14 +3419,14 @@ function DarpanInteriorsPortfolioContent() {
                       isDarkMode ? "text-white" : "text-gray-900"
                     }`}
                   >
-                    Purchase
+                    Purchase Team
                   </div>
                   <div
                     className={`text-xs ${
                       isDarkMode ? "text-gray-300" : "text-gray-600"
                     }`}
                   >
-                    Rakshith - M-7411144867
+                    Material Procurement
                   </div>
                 </div>
                 <div
@@ -3435,14 +3439,14 @@ function DarpanInteriorsPortfolioContent() {
                       isDarkMode ? "text-white" : "text-gray-900"
                     }`}
                   >
-                    Project Manager
+                    Project Management
                   </div>
                   <div
                     className={`text-xs ${
                       isDarkMode ? "text-gray-300" : "text-gray-600"
                     }`}
                   >
-                    Mr. Sagar - M-8792848827
+                    Project Coordination
                   </div>
                 </div>
               </div>
@@ -3493,14 +3497,14 @@ function DarpanInteriorsPortfolioContent() {
                       isDarkMode ? "text-white" : "text-gray-900"
                     }`}
                   >
-                    Project Engineer
+                    Project Engineering
                   </div>
                   <div
                     className={`text-xs ${
                       isDarkMode ? "text-gray-300" : "text-gray-600"
                     }`}
                   >
-                    Mr. Rahul - M-6207550793
+                    Project Execution
                   </div>
                 </div>
                 <div
@@ -3513,14 +3517,14 @@ function DarpanInteriorsPortfolioContent() {
                       isDarkMode ? "text-white" : "text-gray-900"
                     }`}
                   >
-                    MEP Engineer
+                    MEP Engineering
                   </div>
                   <div
                     className={`text-xs ${
                       isDarkMode ? "text-gray-300" : "text-gray-600"
                     }`}
                   >
-                    Ahmed - M-7776012754
+                    Mechanical, Electrical & Plumbing
                   </div>
                 </div>
                 <div

@@ -76,7 +76,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Cloudinary Resource Hints */}
         <link rel="preconnect" href="https://res.cloudinary.com" />
@@ -89,10 +89,20 @@ html {
   --font-sans: ${GeistSans.variable};
   --font-mono: ${GeistMono.variable};
   --font-playfair: ${playfair.style.fontFamily};
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
 }
 body {
   margin: 0;
   overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
+  position: relative;
+}
+/* Prevent horizontal overflow */
+* {
+  box-sizing: border-box;
 }
 /* Logo container - prevent layout shift */
 .logo-container {
